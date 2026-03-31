@@ -1,0 +1,3 @@
+function testApp() {
+  alert("JS is working");
+}

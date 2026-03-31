@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tax The Church</title>
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <h1>Tax The Church</h1>
+  <p>Foundation is now clean.</p>
+
+  <button onclick="testApp()">Test JS</button>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

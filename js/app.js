@@ -48,4 +48,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  function handleSignup(e) {
+    e.preventDefault();
+    var email = document.getElementById('email').value;
+    alert("Thanks — you're in.");
+  }
+
 });

@@ -1,3 +1,10 @@
+const SUPABASE_URL = "https://umouqdubdlqaofqukawa.supabase.co";
+const SUPABASE_KEY = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
+const SUPABASE_TABLE = "subscribers";
+const supabaseClient = window.supabase
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
+
 document.addEventListener('DOMContentLoaded', function () {
 
   window.calculateImpact = function() {
@@ -38,20 +45,52 @@ document.addEventListener('DOMContentLoaded', function () {
       "<strong>Instead, that money is currently untaxed.</strong>";
   };
 
+  async function saveSignup(email, source) {
+    if (!supabaseClient) {
+      alert("Signup is temporarily unavailable.");
+      return false;
+    }
+
+    var cleanEmail = (email || "").trim().toLowerCase();
+    if (!cleanEmail) {
+      alert("Please enter a valid email.");
+      return false;
+    }
+
+    var response = await supabaseClient
+      .from(SUPABASE_TABLE)
+      .insert([{ email: cleanEmail, source: source }]);
+
+    if (response.error) {
+      alert("Could not save your signup right now. Please try again.");
+      return false;
+    }
+
+    return true;
+  }
+
   var joinBtn = document.querySelector('.join-form button');
   if (joinBtn) {
-    joinBtn.addEventListener('click', function() {
+    joinBtn.addEventListener('click', async function() {
       var email = document.getElementById('join-email');
       if (email && email.value) {
-        alert('Thanks! We will be in touch.');
+        var ok = await saveSignup(email.value, "join-section");
+        if (ok) {
+          email.value = "";
+          alert("Thanks! We will be in touch.");
+        }
       }
     });
   }
 
-  function handleSignup(e) {
+  window.handleSignup = async function(e) {
     e.preventDefault();
-    var email = document.getElementById('email').value;
-    alert("Thanks — you're in.");
-  }
+    var emailInput = document.getElementById('email');
+    var ok = await saveSignup(emailInput ? emailInput.value : "", "footer-form");
+    if (ok) {
+      if (emailInput) emailInput.value = "";
+      alert("Thanks — you're in.");
+    }
+  };
 
 });

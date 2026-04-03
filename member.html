@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Join the Movement — Tax the Church</title>
+  <meta name="description" content="Join the movement. Help us put fair taxation on the NSW agenda before the 2027 election.">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .member-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6rem 1.5rem 3rem;
+    }
+    .member-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3rem 2.5rem;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+    }
+    .member-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .member-card h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 2.6rem;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 1rem;
+    }
+    .member-card h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .member-card .sub {
+      color: var(--ink2);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    .member-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .member-form input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      padding: 0.85rem 1rem;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .member-form input:focus {
+      border-color: var(--accent);
+    }
+    .member-form input::placeholder {
+      color: var(--ink2);
+    }
+    .member-form button {
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.9rem 1.5rem;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .member-form button:hover {
+      background: #6d28d9;
+      transform: translateY(-1px);
+    }
+    .member-form button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .member-note {
+      margin-top: 1.25rem;
+      font-size: 0.78rem;
+      color: var(--ink2);
+    }
+    .member-success {
+      display: none;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.4);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .member-success h3 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.6rem;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .member-success p {
+      color: var(--ink2);
+      font-size: 0.9rem;
+    }
+    .member-error {
+      display: none;
+      color: #f87171;
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 2rem;
+      color: var(--ink2);
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="nav-logo">Fix the System</a>
+    <a href="/#join" class="nav-cta">Get Involved</a>
+  </nav>
+
+  <div class="member-wrap">
+    <div class="member-card">
+      <div class="member-label">NSW Legislative Council · Independent</div>
+      <h1>Join the <em>Movement.</em></h1>
+      <p class="sub">Help us put fair taxation on the NSW agenda before the 2027 election.<br>Get updates, data, and real policy — not spin.</p>
+
+      <form class="member-form" id="memberForm">
+        <input type="text" id="firstName" placeholder="First name" required />
+        <input type="email" id="email" placeholder="Email address" required />
+        <input type="text" id="suburb" placeholder="Suburb (optional)" />
+        <button type="submit" id="submitBtn">Join the Movement</button>
+      </form>
+
+      <div class="member-success" id="successMsg">
+        <h3>You're in. ✊</h3>
+        <p>Thanks for joining. We'll be in touch with updates, data, and real policy — not spin.</p>
+      </div>
+
+      <div class="member-error" id="errorMsg">
+        Something went wrong. Please try again.
+      </div>
+
+      <p class="member-note">No spam. Only campaign updates. Unsubscribe anytime.</p>
+      <a href="/" class="back-link">← Back to taxthe.church</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://umouqdubdlqaofqukawa.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    document.getElementById('memberForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const successMsg = document.getElementById('successMsg');
+      const errorMsg = document.getElementById('errorMsg');
+      const form = document.getElementById('memberForm');
+
+      btn.disabled = true;
+      btn.textContent = 'Joining...';
+      errorMsg.style.display = 'none';
+
+      const firstName = document.getElementById('firstName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const suburb = document.getElementById('suburb').value.trim();
+
+      const { error } = await supabase
+        .from('members')
+        .insert([{ first_name: firstName, email, suburb, joined_at: new Date().toISOString() }]);
+
+      if (error) {
+        console.error(error);
+        errorMsg.style.display = 'block';
+        if (error.code === '23505') {
+          errorMsg.textContent = 'That email is already registered.';
+        } else {
+          errorMsg.textContent = 'Something went wrong. Please try again.';
+        }
+        btn.disabled = false;
+        btn.textContent = 'Join the Movement';
+      } else {
+        form.style.display = 'none';
+        successMsg.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

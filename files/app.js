@@ -14,6 +14,11 @@ const SUPABASE_KEY = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
 const SUPABASE_TABLE = "subscribers";
 var supabaseClient = null;
 
+var NSW_POSTCODE_CDN_URLS = [
+  "https://cdn.jsdelivr.net/gh/courtready/TTC@main/nsw-postcodes.json",
+  "https://raw.githubusercontent.com/courtready/TTC/main/nsw-postcodes.json"
+];
+
 function resolveSiteAssetsBase() {
   var scripts = document.getElementsByTagName("script");
   for (var i = scripts.length - 1; i >= 0; i--) {
@@ -40,6 +45,9 @@ function getNswPostcodeFetchUrls() {
     window.location.origin + "/nsw-postcodes.json",
     samePage
   ];
+  for (var c = 0; c < NSW_POSTCODE_CDN_URLS.length; c++) {
+    candidates.push(NSW_POSTCODE_CDN_URLS[c]);
+  }
   var seen = {};
   return candidates.filter(function (u) {
     if (seen[u]) return false;

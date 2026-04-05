@@ -1,5 +1,9 @@
-let currentMode = "nurses";
-let payRise = 0;
+let payRiseNurses = 0;
+let payRiseTeachers = 0;
+let nurseBudgetShare = 50; // % of $500M to nurses; remainder to teachers
+
+let postcodeData = [];
+let dataLoaded = false;
 
 const TOTAL_BUDGET = 500000000; // $500M
 const BASE_SALARY = 100000; // average fully loaded cost per worker
@@ -11,87 +15,179 @@ const supabaseClient = window.supabase
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
   : null;
 
-function setFundingExplanation(visible, opts) {
-  var el = document.getElementById("fundingExplanation");
-  if (!el) return;
-  if (!visible || !opts) {
-    el.textContent = "";
-    el.hidden = true;
-    return;
-  }
-  var payRiseVal = opts.payRise;
-  var base = opts.base;
-  var adjusted = opts.adjusted;
-  var role = opts.role;
-  el.hidden = false;
-  var baseStr = base.toLocaleString("en-AU");
-  var adjStr = adjusted.toLocaleString("en-AU");
-  if (payRiseVal === 0) {
-    el.textContent =
-      "At 0% pay rise, a $500M budget could fund ~" + adjStr + " " + role + " (full baseline).";
-  } else {
-    el.textContent =
-      "You chose a " +
-      payRiseVal +
-      "% pay rise — this means funding ~" +
-      adjStr +
-      " " +
-      role +
-      " instead of " +
-      baseStr +
-      ".";
-  }
+function getNswPostcodeJsonUrl() {
+  return /\/files\//.test(window.location.pathname || "")
+    ? "../nsw-postcodes.json"
+    : "nsw-postcodes.json";
 }
 
-function showImpact() {
+async function loadPostcodes() {
+  if (dataLoaded) return;
+  var res = await fetch(getNswPostcodeJsonUrl());
+  if (!res.ok) {
+    throw new Error("Failed to load NSW postcodes");
+  }
+  postcodeData = await res.json();
+  dataLoaded = true;
+}
+
+function cleanInput(input) {
+  return (input || "").trim().toLowerCase();
+}
+
+function findLocation(input) {
+  input = cleanInput(input);
+
+  return postcodeData.find(function (item) {
+    var suburb = item.suburb.toLowerCase();
+
+    return (
+      item.postcode === input ||
+      suburb === input ||
+      suburb.includes(input)
+    );
+  });
+}
+
+function formatSuburbLabel(suburb) {
+  return suburb.replace(/\w+/g, function (w) {
+    return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  });
+}
+
+function setFundingExplanationText(
+  fundedNurses,
+  fundedTeachers,
+  baselineNurses,
+  baselineTeachers
+) {
+  var el = document.getElementById("fundingExplanation");
+  if (!el) return;
+  el.hidden = false;
+  var n0 = payRiseNurses === 0;
+  var t0 = payRiseTeachers === 0;
+  var lineN;
+  if (nurseBudgetShare === 0) {
+    lineN = "No nurse allocation — move “Budget to nurses” above 0% to fund nurses.";
+  } else if (n0) {
+    lineN =
+      "At 0% pay rise for nurses, your nurse share of a $500M budget could fund ~" +
+      fundedNurses.toLocaleString("en-AU") +
+      " nurses (full baseline for that share).";
+  } else {
+    lineN =
+      "You chose a " +
+      payRiseNurses +
+      "% pay rise for nurses — this means funding ~" +
+      fundedNurses.toLocaleString("en-AU") +
+      " nurses instead of " +
+      baselineNurses.toLocaleString("en-AU") +
+      ".";
+  }
+  var lineT;
+  if (nurseBudgetShare === 100) {
+    lineT = "No teacher allocation — move “Budget to nurses” below 100% to fund teachers.";
+  } else if (t0) {
+    lineT =
+      "At 0% pay rise for teachers, your teacher share of a $500M budget could fund ~" +
+      fundedTeachers.toLocaleString("en-AU") +
+      " teachers (full baseline for that share).";
+  } else {
+    lineT =
+      "You chose a " +
+      payRiseTeachers +
+      "% pay rise for teachers — this means funding ~" +
+      fundedTeachers.toLocaleString("en-AU") +
+      " teachers instead of " +
+      baselineTeachers.toLocaleString("en-AU") +
+      ".";
+  }
+  el.innerHTML = lineN + "<br><br>" + lineT;
+}
+
+async function showImpact() {
   var inputEl = document.getElementById("locationInput");
   var resultEl = document.getElementById("impactResult");
   if (!resultEl) return;
-  var input = inputEl ? inputEl.value.trim().toLowerCase() : "";
+
+  if (!dataLoaded) {
+    try {
+      await loadPostcodes();
+    } catch (err) {
+      resultEl.innerHTML =
+        "Could not load NSW postcode data. Check your connection and refresh the page.";
+      setFundingExplanationHidden();
+      return;
+    }
+  }
+
+  var raw = inputEl ? inputEl.value : "";
+  var input = cleanInput(raw);
   if (!input) {
     resultEl.innerHTML = "Enter a postcode or suburb";
-    setFundingExplanation(false);
+    setFundingExplanationHidden();
     return;
   }
-  var map = {
-    "2000": "Sydney", "2010": "Sydney", "2020": "Heffron", "2031": "Coogee",
-    "2034": "Coogee", "2040": "Summer Hill", "2041": "Balmain", "2042": "Newtown",
-    "newtown": "Newtown", "2044": "Summer Hill", "summer hill": "Summer Hill",
-    "2050": "Balmain", "2060": "North Shore", "2065": "Lane Cove",
-    "2070": "Willoughby", "2088": "Manly", "2095": "Manly",
-    "2130": "Strathfield", "2140": "Auburn", "2145": "Seven Hills",
-    "2150": "Parramatta", "parramatta": "Parramatta", "2155": "Kellyville",
-    "2160": "Fairfield", "2170": "Liverpool", "2200": "Bankstown",
-    "2204": "Canterbury", "2217": "Kogarah", "2220": "Miranda", "2229": "Cronulla"
-  };
-  var electorate = map[input];
-  if (!electorate) {
+
+  var loc = findLocation(raw);
+  if (!loc) {
     resultEl.innerHTML =
-      "<strong>" + input + "</strong><br><br>" +
-      "Across NSW:<br>" +
-      "\u2248 150 nurses per electorate<br>" +
-      "\u2248 130 teachers per electorate<br><br>" +
-      "<em>Electorate data expanding.</em>";
-    setFundingExplanation(false);
+      "<strong>Location not found</strong><br><br>" +
+      "Try a NSW postcode (e.g. 2044) or suburb name (e.g. Newtown).";
+    setFundingExplanationHidden();
     return;
   }
-  var data = { suburb: electorate };
 
-  const adjustedSalary = BASE_SALARY * (1 + payRise / 100);
-  const fundedWorkers = Math.floor(TOTAL_BUDGET / adjustedSalary);
-  const baselineWorkers = Math.floor(TOTAL_BUDGET / BASE_SALARY);
-  const difference = baselineWorkers - fundedWorkers;
-  const roleLabel = currentMode === "nurses" ? "nurses" : "teachers";
+  var displayLine =
+    "<strong>" +
+    formatSuburbLabel(loc.suburb) +
+    "</strong> <span style=\"opacity:0.85\">(" +
+    loc.postcode +
+    ")</span>";
+  if (loc.electorate) {
+    displayLine +=
+      "<br><span style=\"font-size:0.92em;opacity:0.9\">Electorate: " +
+      formatSuburbLabel(loc.electorate) +
+      "</span>";
+  }
 
-  let output = `<strong>${data.suburb || input}</strong><br><br>
+  var budgetNurses = TOTAL_BUDGET * (nurseBudgetShare / 100);
+  var budgetTeachers = TOTAL_BUDGET * ((100 - nurseBudgetShare) / 100);
 
-✔ ${fundedWorkers.toLocaleString("en-AU")} ${roleLabel}<br>
-${payRise > 0 ? `✔ ${payRise}% pay rise for all ${roleLabel}<br>` : ""}<br>
+  var costNurse = BASE_SALARY * (1 + payRiseNurses / 100);
+  var costTeacher = BASE_SALARY * (1 + payRiseTeachers / 100);
+
+  var fundedNurses = Math.floor(budgetNurses / costNurse);
+  var fundedTeachers = Math.floor(budgetTeachers / costTeacher);
+
+  var baselineNurses = Math.floor(budgetNurses / BASE_SALARY);
+  var baselineTeachers = Math.floor(budgetTeachers / BASE_SALARY);
+
+  var diffN = baselineNurses - fundedNurses;
+  var diffT = baselineTeachers - fundedTeachers;
+
+  var comparisonParts = [];
+  if (payRiseNurses > 0 && diffN > 0) {
+    comparisonParts.push(diffN.toLocaleString("en-AU") + " fewer nurses");
+  }
+  if (payRiseTeachers > 0 && diffT > 0) {
+    comparisonParts.push(diffT.toLocaleString("en-AU") + " fewer teachers");
+  }
+  var comparisonLine =
+    comparisonParts.length > 0
+      ? `<br><br>Compared to 0% pay in each pool: ${comparisonParts.join("; ")}.`
+      : "";
+
+  let output = `${displayLine}<br><br>
+
+✔ ${fundedNurses.toLocaleString("en-AU")} nurses<br>
+${payRiseNurses > 0 ? `✔ ${payRiseNurses}% pay rise for all nurses<br>` : ""}
+✔ ${fundedTeachers.toLocaleString("en-AU")} teachers<br>
+${payRiseTeachers > 0 ? `✔ ${payRiseTeachers}% pay rise for all teachers<br>` : ""}<br>
 
 <strong>You are allocating a fixed $500M budget.</strong><br>
-Increasing pay reduces total staff — this is the real trade-off.
-${payRise > 0 ? `<br><br>
-  That's ${difference.toLocaleString("en-AU")} fewer ${roleLabel} compared to no pay rise.` : ""}
+${nurseBudgetShare}% of funds to nurses; ${100 - nurseBudgetShare}% to teachers. Increasing pay in either pool reduces headcount there.
+${comparisonLine}
 
 <div style="font-size:12px; opacity:0.7; margin-top:10px;">
   Based on ~$100k average cost per worker (salary + super + overhead).
@@ -115,39 +211,51 @@ Where is the money going instead?<br><br>
 
   resultEl.innerHTML = output + footer;
 
-  setFundingExplanation(true, {
-    payRise: payRise,
-    base: baselineWorkers,
-    adjusted: fundedWorkers,
-    role: roleLabel
+  setFundingExplanationText(
+    fundedNurses,
+    fundedTeachers,
+    baselineNurses,
+    baselineTeachers
+  );
+}
+
+function setFundingExplanationHidden() {
+  var el = document.getElementById("fundingExplanation");
+  if (!el) return;
+  el.textContent = "";
+  el.hidden = true;
+}
+
+function updateSplit(value) {
+  nurseBudgetShare = parseInt(value, 10);
+  var el = document.getElementById("splitValue");
+  if (el) el.innerText = value;
+  void showImpact();
+}
+
+function updatePayNurses(value) {
+  payRiseNurses = parseInt(value, 10);
+  var el = document.getElementById("payValueNurses");
+  if (el) el.innerText = value;
+  void showImpact();
+}
+
+function updatePayTeachers(value) {
+  payRiseTeachers = parseInt(value, 10);
+  var el = document.getElementById("payValueTeachers");
+  if (el) el.innerText = value;
+  void showImpact();
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  window.calculateImpact = function () {
+    void showImpact();
+  };
+
+  loadPostcodes().catch(function (e) {
+    console.error("NSW postcodes preload failed:", e);
   });
-}
-
-function setMode(mode) {
-  currentMode = mode;
-
-  document.getElementById("btnNurses").style.opacity = mode === "nurses" ? "1" : "0.5";
-  document.getElementById("btnTeachers").style.opacity = mode === "teachers" ? "1" : "0.5";
-
-  showImpact();
-}
-
-function updatePay(value) {
-  payRise = parseInt(value, 10);
-  document.getElementById("payValue").innerText = value;
-  showImpact();
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-
-  window.calculateImpact = showImpact;
-
-  var bn = document.getElementById("btnNurses");
-  var bt = document.getElementById("btnTeachers");
-  if (bn && bt) {
-    bn.style.opacity = "1";
-    bt.style.opacity = "0.5";
-  }
 
   async function saveSignup(email, source) {
     if (!supabaseClient) {
@@ -173,10 +281,10 @@ document.addEventListener('DOMContentLoaded', function () {
     return true;
   }
 
-  var joinBtn = document.querySelector('.join-form button');
+  var joinBtn = document.querySelector(".join-form button");
   if (joinBtn) {
-    joinBtn.addEventListener('click', async function() {
-      var email = document.getElementById('join-email');
+    joinBtn.addEventListener("click", async function () {
+      var email = document.getElementById("join-email");
       if (email && email.value) {
         var ok = await saveSignup(email.value, "join-section");
         if (ok) {
@@ -187,9 +295,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  window.handleSignup = async function(e) {
+  window.handleSignup = async function (e) {
     e.preventDefault();
-    var emailInput = document.getElementById('email');
+    var emailInput = document.getElementById("email");
     var ok = await saveSignup(emailInput ? emailInput.value : "", "footer-form");
     if (ok) {
       if (emailInput) emailInput.value = "";
@@ -200,7 +308,10 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function supportPolicy() {
-  window.location.href = "/member.html";
+  var el = document.getElementById("join");
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 function shareImpact() {

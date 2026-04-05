@@ -20,7 +20,8 @@ fs.createReadStream('australian_postcodes.csv')
 
         results.push({
           suburb: suburb,
-          postcode: postcode
+          postcode: postcode,
+          electorate: (data.electorate || "").trim()
         });
       }
     }

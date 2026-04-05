@@ -199,8 +199,8 @@ h2 em { color: var(--accent); font-style: normal; }
 }
 #fundingControls {
   margin-top: 0;
-  min-width: 200px;
-  max-width: 240px;
+  min-width: 220px;
+  max-width: 300px;
   padding-left: 1.25rem;
   border-left: 1px solid var(--border);
 }
@@ -209,6 +209,28 @@ h2 em { color: var(--accent); font-style: normal; }
   line-height: 1.45;
   color: var(--ink2);
   margin: 0.5rem 0 0.75rem;
+}
+.funding-split-row,
+.funding-pay-row {
+  margin-top: 0.75rem;
+}
+.funding-split-row label,
+.funding-pay-row label {
+  display: block;
+  font-size: 0.82rem;
+  margin-bottom: 0.35rem;
+}
+.funding-split-rest {
+  font-weight: 400;
+  opacity: 0.75;
+  font-size: 0.78rem;
+}
+#fundingControls input[type="range"] {
+  width: 100%;
+  max-width: 220px;
+}
+.funding-split-row input[type="range"] {
+  max-width: 100%;
 }
 @media (max-width: 700px) {
   .impact-result-wrap {
@@ -230,10 +252,6 @@ h2 em { color: var(--accent); font-style: normal; }
   cursor: pointer;
   background: var(--surface);
   color: var(--ink);
-}
-#fundingControls input[type=range] {
-  width: 200px;
-  max-width: 100%;
 }
 .impact-result-wrap .impact-result { margin-top: 0; }
 .impact-result { margin-top: 1rem; color: var(--ink2); font-size: 0.95rem; }
@@ -274,6 +292,9 @@ h2 em { color: var(--accent); font-style: normal; }
 .impact-btn:active { filter: brightness(0.95); }
 
 /* JOIN */
+#join {
+  scroll-margin-top: 5rem;
+}
 .join-wrap {
   background: #271e35; border-radius: 20px; padding: clamp(1.75rem, 4vw, 2.75rem) clamp(1rem, 4vw, 2rem);
   text-align: center; margin: 0 clamp(0.75rem, 3vw, 2rem) 2.5rem;

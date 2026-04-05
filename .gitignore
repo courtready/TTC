@@ -1,0 +1,3 @@
+node_modules/
+# Source CSV (~9MB); re-download from matthewproctor/australianpostcodes if regenerating
+australian_postcodes.csv

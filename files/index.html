@@ -118,10 +118,21 @@
     <div class="section-label">Local Impact</div>
     <h2>What This Means <em>For Your Area</em></h2>
     <div class="impact-box">
-      <input id="postcode" class="impact-input" type="text" inputmode="text" autocomplete="postal-code"
+      <input id="locationInput" class="impact-input" type="text" inputmode="text" autocomplete="postal-code"
         placeholder="Enter postcode or suburb (e.g. 2044 or Newtown)">
       <button type="button" class="impact-btn" onclick="calculateImpact()">Show Impact</button>
-      <div id="impact-result" class="impact-result"></div>
+      <div class="impact-result-wrap">
+        <div id="impactResult" class="impact-result"></div>
+        <div id="fundingControls">
+          <label><strong>Choose focus:</strong></label><br>
+          <p id="fundingExplanation" class="funding-explanation" aria-live="polite" hidden></p>
+          <button type="button" onclick="setMode('nurses')" id="btnNurses">Nurses</button> <button type="button"
+            onclick="setMode('teachers')" id="btnTeachers">Teachers</button>
+          <br><br>
+          <label><strong>Pay rise: <span id="payValue">0</span>%</strong></label><br>
+          <input type="range" id="paySlider" min="0" max="20" value="0" oninput="updatePay(this.value)">
+        </div>
+      </div>
     </div>
   </section>
 
@@ -232,29 +243,25 @@
 
   <div class="divider"></div>
 
-  <!-- JOIN -->
+  <!-- JOIN + DONATE -->
   <div class="join-wrap" id="join">
     <div class="section-label" style="color:rgba(255,255,255,0.5)">Get Involved</div>
     <h2>Join the Movement.</h2>
     <p>Help us put fair taxation on the NSW agenda before the 2027 election.</p>
     <a href="../member.html" class="btn-primary" style="display:inline-block;margin-top:1.5rem;">Join the Movement</a>
     <p class="join-note">No spam. Only campaign updates. Unsubscribe anytime.</p>
-  </div>
-
-  <!-- DONATE -->
-  <div class="donate-wrap">
-    <div class="section-label">Support the Campaign</div>
-    <h2>Back the <em>Fight.</em></h2>
-    <p style="color:var(--ink2);margin-top:0.5rem;">Every dollar goes directly to getting this message in front of NSW
-      voters.</p>
-    <div class="donate-btns">
-      <a href="https://buy.stripe.com/8x2fZg0Qe4th8y4ggu28800" target="_blank" class="donate-btn">$10</a>
-      <a href="https://buy.stripe.com/9B6bJ07eCf7V7u02pE28806" target="_blank" class="donate-btn featured">$25</a>
-      <a href="https://buy.stripe.com/9B6dR8dD02l98y4aWa28803" target="_blank" class="donate-btn">$50</a>
-      <a href="https://buy.stripe.com/5kQ9ASdD09NB01y8O228805" target="_blank" class="donate-btn">Other</a>
+    <div class="join-donate">
+      <div class="section-label" style="color:rgba(255,255,255,0.5)">Support the Campaign</div>
+      <h2>Back the <em>Fight.</em></h2>
+      <p>Every dollar goes directly to getting this message in front of NSW voters.</p>
+      <div class="donate-btns">
+        <a href="https://buy.stripe.com/8x2fZg0Qe4th8y4ggu28800" target="_blank" class="donate-btn">$10</a>
+        <a href="https://buy.stripe.com/9B6bJ07eCf7V7u02pE28806" target="_blank" class="donate-btn featured">$25</a>
+        <a href="https://buy.stripe.com/9B6dR8dD02l98y4aWa28803" target="_blank" class="donate-btn">$50</a>
+        <a href="https://buy.stripe.com/5kQ9ASdD09NB01y8O228805" target="_blank" class="donate-btn">Other</a>
+      </div>
+      <p>Political donations may be subject to electoral disclosure requirements.</p>
     </div>
-    <p style="font-size:0.78rem;color:var(--ink2);margin-top:1.25rem;">Political donations may be subject to electoral
-      disclosure requirements.</p>
   </div>
 
   <footer class="site-footer">

@@ -55,8 +55,8 @@ nav {
 
 /* HERO */
 .hero {
-  padding: clamp(6rem, 18vw, 10rem) clamp(1rem, 4vw, 2rem) 4rem;
-  padding-top: max(clamp(6rem, 18vw, 10rem), calc(env(safe-area-inset-top) + 4rem));
+  padding: clamp(5rem, 14vw, 8rem) clamp(1rem, 4vw, 2rem) 2.75rem;
+  padding-top: max(clamp(5rem, 14vw, 8rem), calc(env(safe-area-inset-top) + 3.5rem));
   max-width: 1100px; margin: 0 auto;
 }
 .hero-label {
@@ -94,7 +94,7 @@ h1 em { color: var(--accent); font-style: normal; }
 }
 
 /* SECTIONS */
-section { padding: clamp(3rem, 8vw, 5rem) clamp(1rem, 4vw, 2rem); max-width: 1100px; margin: 0 auto; }
+section { padding: clamp(2rem, 5vw, 3.25rem) clamp(1rem, 4vw, 2rem); max-width: 1100px; margin: 0 auto; }
 .section-label {
   font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem;
@@ -107,7 +107,7 @@ h2 em { color: var(--accent); font-style: normal; }
 
 /* STATS CARDS */
 .stats-grid {
-  display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 2rem;
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 1.5rem;
 }
 .stat-card {
   background: var(--surface); border: 1px solid var(--border);
@@ -143,7 +143,7 @@ h2 em { color: var(--accent); font-style: normal; }
 
 /* PROBLEM CARDS */
 .prob-grid {
-  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 2rem;
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 1.5rem;
 }
 .prob-card {
   background: var(--surface); border: 1px solid var(--border);
@@ -156,7 +156,7 @@ h2 em { color: var(--accent); font-style: normal; }
 .prob-card p { color: var(--ink2); font-size: 1rem; line-height: 1.6; }
 
 /* POLICY */
-.policy-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; }
+.policy-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
 .policy-item {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 14px; padding: 2rem;
@@ -174,7 +174,7 @@ h2 em { color: var(--accent); font-style: normal; }
 
 /* NOT AFFECTED */
 .safe-grid {
-  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 2rem;
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 1.5rem;
 }
 .safe-card {
   background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.25);
@@ -187,8 +187,55 @@ h2 em { color: var(--accent); font-style: normal; }
 /* IMPACT BOX */
 .impact-box {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 2.5rem; margin-top: 2rem;
+  border-radius: 14px; padding: 2.5rem; margin-top: 1.5rem;
 }
+/* Result text left, funding controls right */
+.impact-result-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.25rem 2rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+#fundingControls {
+  margin-top: 0;
+  min-width: 200px;
+  max-width: 240px;
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--border);
+}
+.funding-explanation {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--ink2);
+  margin: 0.5rem 0 0.75rem;
+}
+@media (max-width: 700px) {
+  .impact-result-wrap {
+    grid-template-columns: 1fr;
+  }
+  #fundingControls {
+    max-width: none;
+    padding-left: 0;
+    padding-top: 1rem;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}
+#fundingControls button {
+  padding: 8px 12px;
+  margin-right: 5px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--ink);
+}
+#fundingControls input[type=range] {
+  width: 200px;
+  max-width: 100%;
+}
+.impact-result-wrap .impact-result { margin-top: 0; }
 .impact-result { margin-top: 1rem; color: var(--ink2); font-size: 0.95rem; }
 .impact-result strong { color: var(--accent); }
 .impact-box input,
@@ -228,8 +275,8 @@ h2 em { color: var(--accent); font-style: normal; }
 
 /* JOIN */
 .join-wrap {
-  background: #271e35; border-radius: 20px; padding: clamp(2.5rem, 6vw, 4rem) clamp(1rem, 4vw, 2rem);
-  text-align: center; margin: 0 clamp(0.75rem, 3vw, 2rem) 4rem;
+  background: #271e35; border-radius: 20px; padding: clamp(1.75rem, 4vw, 2.75rem) clamp(1rem, 4vw, 2rem);
+  text-align: center; margin: 0 clamp(0.75rem, 3vw, 2rem) 2.5rem;
   border: 1px solid rgba(124,58,237,0.25);
 }
 .join-wrap h2 { color: white; }
@@ -251,8 +298,29 @@ h2 em { color: var(--accent); font-style: normal; }
 }
 .join-note { font-size: 0.78rem; color: rgba(255,255,255,0.35); margin-top: 1rem; }
 
-/* DONATE */
-.donate-wrap { text-align: center; padding: clamp(3rem, 8vw, 5rem) clamp(1rem, 4vw, 2rem); max-width: 1100px; margin: 0 auto; }
+/* Donate block (inside join-wrap) */
+.join-donate {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(124,58,237,0.35);
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+.join-wrap .join-donate p {
+  color: rgba(255,255,255,0.65);
+  margin: 0.5rem 0 1rem;
+  font-size: 1rem;
+}
+.join-wrap .join-donate > p:last-child {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.45);
+  margin-top: 1.25rem;
+  margin-bottom: 0;
+}
+
+/* DONATE buttons */
 .donate-btns { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
 .donate-btn {
   background: var(--surface); border: 1.5px solid var(--border);
@@ -268,7 +336,7 @@ h2 em { color: var(--accent); font-style: normal; }
 
 /* FOOTER */
 footer {
-  border-top: 1px solid var(--border); padding: 2rem 2rem;
+  border-top: 1px solid var(--border); padding: 1.5rem 2rem;
   max-width: 1100px; margin: 0 auto;
   display: flex; justify-content: space-between; align-items: center;
   flex-wrap: wrap; gap: 1rem;
@@ -307,11 +375,11 @@ footer {
 /* FOOTER CTA */
 .site-footer {
   border-top: 1px solid var(--border);
-  padding: clamp(2.5rem, 6vw, 4rem) clamp(1rem, 4vw, 2rem);
+  padding: clamp(1.75rem, 4vw, 2.75rem) clamp(1rem, 4vw, 2rem);
   max-width: 1100px;
   margin: 0 auto;
   text-align: center;
-  padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
+  padding-bottom: max(1.75rem, env(safe-area-inset-bottom));
 }
 .footer-content { max-width: 600px; margin: 0 auto; }
 .quote {
@@ -325,8 +393,8 @@ footer {
   font-size: 1rem; color: #ffffff;
   margin-top: 1rem; margin-bottom: 0;
 }
-.authorised { font-size: 0.78rem; color: var(--ink2); margin-top: 2rem; }
-.cta-block { margin: 40px 0; }
+.authorised { font-size: 0.78rem; color: var(--ink2); margin-top: 1.5rem; }
+.cta-block { margin: 1.5rem 0; }
 .cta-block h2 { font-size: 28px; margin-bottom: 10px; }
 .cta-block p { color: #bbb; margin-bottom: 20px; }
 .email-form {

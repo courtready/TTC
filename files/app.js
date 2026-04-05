@@ -247,7 +247,20 @@ function updatePayTeachers(value) {
   void showImpact();
 }
 
+function scrollToHashTarget() {
+  var hash = location.hash;
+  if (!hash || hash.length < 2) return;
+  var id = decodeURIComponent(hash.slice(1));
+  var el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: "auto", block: "start" });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+  requestAnimationFrame(scrollToHashTarget);
+  window.addEventListener("load", scrollToHashTarget);
+  window.addEventListener("hashchange", scrollToHashTarget);
 
   window.calculateImpact = function () {
     void showImpact();

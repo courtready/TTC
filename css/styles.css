@@ -105,6 +105,12 @@ h2 {
 }
 h2 em { color: var(--accent); font-style: normal; }
 
+/* Fixed nav overlaps :target scroll — keep section headings visible */
+#policy,
+#join {
+  scroll-margin-top: calc(5rem + env(safe-area-inset-top, 0px));
+}
+
 /* STATS CARDS */
 .stats-grid {
   display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 1.5rem;

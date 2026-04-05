@@ -168,6 +168,8 @@ h2 em { color: var(--accent); font-style: normal; }
 .policy-item h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.4rem; }
 .policy-item p { color: var(--ink2); font-size: 0.95rem; line-height: 1.6; }
 .policy-item ul { padding-left: 1.25rem; color: var(--ink2); font-size: 0.9rem; margin-top: 0.5rem; line-height: 1.8; }
+/* Temporarily hidden (policy 5 — unhide by removing class + restore “Five Policies” heading) */
+.policy-item--hidden { display: none !important; }
 
 /* NOT AFFECTED */
 .safe-grid {

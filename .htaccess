@@ -1,0 +1,14 @@
+# Static site helpers for Apache / cPanel (taxthe.church style deploys)
+# Ensures JSON and other real files are served, not swallowed by SPA-style rewrites.
+
+<IfModule mod_mime.c>
+  AddType application/json .json
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # If the requested path is an actual file or directory, serve it (stop here).
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+</IfModule>

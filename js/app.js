@@ -62,7 +62,16 @@ async function loadPostcodes() {
         lastErr = new Error("HTTP " + res.status + " for " + urls[j]);
         continue;
       }
-      var data = await res.json();
+      var raw = await res.text();
+      var trimmed = raw.replace(/^\uFEFF/, "").trim();
+      if (trimmed.charAt(0) === "<") {
+        lastErr = new Error(
+          "Got HTML instead of JSON (often a missing file or rewrite to index). URL: " +
+            urls[j]
+        );
+        continue;
+      }
+      var data = JSON.parse(trimmed);
       if (!Array.isArray(data) || !data.length) {
         lastErr = new Error("Invalid postcode JSON");
         continue;

@@ -297,6 +297,27 @@ h2 em { color: var(--accent); font-style: normal; }
 }
 .impact-btn:active { filter: brightness(0.95); }
 
+.impact-action-btn {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+.impact-action-btn--primary {
+  padding: 12px 18px;
+  background: #ffd700;
+  border-radius: 6px;
+  font-weight: 700;
+  color: #1a1024;
+}
+.impact-action-btn--secondary {
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--ink);
+  border: 1px solid var(--border);
+}
+
 /* JOIN */
 #join {
   scroll-margin-top: 5rem;

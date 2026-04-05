@@ -11,14 +11,21 @@ const BASE_SALARY = 100000; // average fully loaded cost per worker
 const SUPABASE_URL = "https://umouqdubdlqaofqukawa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
 const SUPABASE_TABLE = "subscribers";
-const supabaseClient = window.supabase
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-  : null;
+var supabaseClient = null;
+try {
+  if (window.supabase && typeof window.supabase.createClient === "function") {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+} catch (err) {
+  console.warn("Supabase client init failed:", err);
+}
 
 function getNswPostcodeJsonUrl() {
-  return /\/files\//.test(window.location.pathname || "")
-    ? "../nsw-postcodes.json"
-    : "nsw-postcodes.json";
+  var path = window.location.pathname || "";
+  if (/\/files\//.test(path)) {
+    return new URL("../nsw-postcodes.json", window.location.href).href;
+  }
+  return new URL("nsw-postcodes.json", window.location.href).href;
 }
 
 async function loadPostcodes() {
@@ -197,13 +204,13 @@ ${comparisonLine}
 <br><br>
 Where is the money going instead?<br><br>
   <div style="margin-top:15px;">
-    <button onclick="supportPolicy()" style="padding:12px 18px; background:#ffd700; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+    <button type="button" data-impact-action="support-policy" class="impact-action-btn impact-action-btn--primary">
       I want this for my area
     </button>
   </div>
 
   <div style="margin-top:10px;">
-    <button onclick="shareImpact()" style="padding:10px 14px; border-radius:6px; cursor:pointer;">
+    <button type="button" data-impact-action="share-impact" class="impact-action-btn impact-action-btn--secondary">
       Share this result
     </button>
   </div>
@@ -247,6 +254,40 @@ function updatePayTeachers(value) {
   void showImpact();
 }
 
+window.calculateImpact = function () {
+  void showImpact();
+};
+window.updateSplit = updateSplit;
+window.updatePayNurses = updatePayNurses;
+window.updatePayTeachers = updatePayTeachers;
+
+function wireLocalImpactControls() {
+  var showBtn = document.getElementById("impactShowBtn");
+  if (showBtn) {
+    showBtn.addEventListener("click", function () {
+      void showImpact();
+    });
+  }
+  var split = document.getElementById("splitSlider");
+  if (split) {
+    split.addEventListener("input", function () {
+      updateSplit(this.value);
+    });
+  }
+  var payN = document.getElementById("paySliderNurses");
+  if (payN) {
+    payN.addEventListener("input", function () {
+      updatePayNurses(this.value);
+    });
+  }
+  var payT = document.getElementById("paySliderTeachers");
+  if (payT) {
+    payT.addEventListener("input", function () {
+      updatePayTeachers(this.value);
+    });
+  }
+}
+
 function scrollToHashTarget() {
   var hash = location.hash;
   if (!hash || hash.length < 2) return;
@@ -257,14 +298,25 @@ function scrollToHashTarget() {
   }
 }
 
+document.addEventListener("click", function (e) {
+  var btn = e.target && e.target.closest
+    ? e.target.closest("[data-impact-action]")
+    : null;
+  if (!btn) return;
+  var action = btn.getAttribute("data-impact-action");
+  if (action === "support-policy") {
+    supportPolicy();
+  } else if (action === "share-impact") {
+    shareImpact();
+  }
+});
+
 document.addEventListener("DOMContentLoaded", function () {
   requestAnimationFrame(scrollToHashTarget);
   window.addEventListener("load", scrollToHashTarget);
   window.addEventListener("hashchange", scrollToHashTarget);
 
-  window.calculateImpact = function () {
-    void showImpact();
-  };
+  wireLocalImpactControls();
 
   loadPostcodes().catch(function (e) {
     console.error("NSW postcodes preload failed:", e);

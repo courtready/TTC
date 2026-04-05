@@ -21,11 +21,10 @@ try {
 }
 
 function getNswPostcodeJsonUrl() {
-  var path = window.location.pathname || "";
-  if (/\/files\//.test(path)) {
-    return new URL("../nsw-postcodes.json", window.location.href).href;
+  if (window.location.protocol === "file:") {
+    return new URL("nsw-postcodes.json", window.location.href).href;
   }
-  return new URL("nsw-postcodes.json", window.location.href).href;
+  return "/nsw-postcodes.json";
 }
 
 async function loadPostcodes() {

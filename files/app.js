@@ -4,6 +4,7 @@ let nurseBudgetShare = 50; // % of $500M to nurses; remainder to teachers
 
 let postcodeData = [];
 let dataLoaded = false;
+var siteAssetsBase = null;
 
 const TOTAL_BUDGET = 500000000; // $500M
 const BASE_SALARY = 100000; // average fully loaded cost per worker
@@ -12,29 +13,68 @@ const SUPABASE_URL = "https://umouqdubdlqaofqukawa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
 const SUPABASE_TABLE = "subscribers";
 var supabaseClient = null;
-try {
-  if (window.supabase && typeof window.supabase.createClient === "function") {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function resolveSiteAssetsBase() {
+  var scripts = document.getElementsByTagName("script");
+  for (var i = scripts.length - 1; i >= 0; i--) {
+    var full = scripts[i].src;
+    if (!full) continue;
+    var m = full.match(/^(.*\/)js\/app\.js(\?|#|$)/i);
+    if (m) {
+      return m[1];
+    }
   }
-} catch (err) {
-  console.warn("Supabase client init failed:", err);
+  var p = window.location.pathname || "/";
+  var dir = p.replace(/[^/]*$/, "");
+  return window.location.origin + (dir || "/");
 }
 
-function getNswPostcodeJsonUrl() {
+function getNswPostcodeFetchUrls() {
   if (window.location.protocol === "file:") {
-    return new URL("nsw-postcodes.json", window.location.href).href;
+    return [new URL("nsw-postcodes.json", window.location.href).href];
   }
-  return "/nsw-postcodes.json";
+  var base = siteAssetsBase || resolveSiteAssetsBase();
+  var samePage = new URL("nsw-postcodes.json", window.location.href).href;
+  var candidates = [
+    base + "nsw-postcodes.json",
+    window.location.origin + "/nsw-postcodes.json",
+    samePage
+  ];
+  var seen = {};
+  return candidates.filter(function (u) {
+    if (seen[u]) return false;
+    seen[u] = true;
+    return true;
+  });
 }
 
 async function loadPostcodes() {
   if (dataLoaded) return;
-  var res = await fetch(getNswPostcodeJsonUrl());
-  if (!res.ok) {
-    throw new Error("Failed to load NSW postcodes");
+  if (!siteAssetsBase) {
+    siteAssetsBase = resolveSiteAssetsBase();
   }
-  postcodeData = await res.json();
-  dataLoaded = true;
+  var urls = getNswPostcodeFetchUrls();
+  var lastErr = null;
+  for (var j = 0; j < urls.length; j++) {
+    try {
+      var res = await fetch(urls[j], { cache: "no-store" });
+      if (!res.ok) {
+        lastErr = new Error("HTTP " + res.status + " for " + urls[j]);
+        continue;
+      }
+      var data = await res.json();
+      if (!Array.isArray(data) || !data.length) {
+        lastErr = new Error("Invalid postcode JSON");
+        continue;
+      }
+      postcodeData = data;
+      dataLoaded = true;
+      return;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error("Failed to load NSW postcodes");
 }
 
 function cleanInput(input) {
@@ -117,11 +157,14 @@ async function showImpact() {
   if (!resultEl) return;
 
   if (!dataLoaded) {
+    resultEl.textContent = "Loading NSW postcode data…";
     try {
       await loadPostcodes();
     } catch (err) {
+      console.error("Postcode load failed:", err);
       resultEl.innerHTML =
-        "Could not load NSW postcode data. Check your connection and refresh the page.";
+        "<strong>Could not load postcode data.</strong><br><br>" +
+        "If you are the site owner, ensure <code>nsw-postcodes.json</code> is deployed next to the site and try a hard refresh (Ctrl+Shift+R).";
       setFundingExplanationHidden();
       return;
     }
@@ -310,7 +353,28 @@ document.addEventListener("click", function (e) {
   }
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+function initSupabaseIfAvailable() {
+  try {
+    if (window.supabase && typeof window.supabase.createClient === "function") {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+  } catch (err) {
+    console.warn("Supabase client init failed:", err);
+  }
+}
+
+function onDomReady(fn) {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", fn);
+  } else {
+    fn();
+  }
+}
+
+onDomReady(function () {
+  siteAssetsBase = resolveSiteAssetsBase();
+  initSupabaseIfAvailable();
+
   requestAnimationFrame(scrollToHashTarget);
   window.addEventListener("load", scrollToHashTarget);
   window.addEventListener("hashchange", scrollToHashTarget);

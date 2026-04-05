@@ -158,7 +158,7 @@
       <form class="member-form" id="memberForm">
         <input type="text" id="firstName" placeholder="First name" required />
         <input type="email" id="email" placeholder="Email address" required />
-        <input type="text" id="suburb" placeholder="Suburb (optional)" />
+        <input type="text" id="suburb" name="suburb" placeholder="Suburb or postcode" required autocomplete="address-level2" />
         <button type="submit" id="submitBtn">Join the Movement</button>
       </form>
 
@@ -196,6 +196,14 @@
       const firstName = document.getElementById('firstName').value.trim();
       const email = document.getElementById('email').value.trim();
       const suburb = document.getElementById('suburb').value.trim();
+
+      if (!suburb) {
+        errorMsg.textContent = 'Please enter your suburb or postcode.';
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Join the Movement';
+        return;
+      }
 
       const { error } = await supabase
         .from('members')

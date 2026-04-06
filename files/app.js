@@ -11,7 +11,7 @@ const BASE_SALARY = 100000; // average fully loaded cost per worker
 
 const SUPABASE_URL = "https://umouqdubdlqaofqukawa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
-const SUPABASE_TABLE = "subscribers";
+const SUPABASE_TABLE = "members";
 var supabaseClient = null;
 
 var NSW_POSTCODE_CDN_URLS = [
@@ -416,7 +416,15 @@ onDomReady(function () {
 
     var response = await supabaseClient
       .from(SUPABASE_TABLE)
-      .insert([{ email: cleanEmail, source: source }]);
+      .insert([
+        {
+          first_name: "",
+          suburb: "",
+          email: cleanEmail,
+          source: source,
+          joined_at: new Date().toISOString()
+        }
+      ]);
 
     if (response.error) {
       alert("Could not save your signup right now. Please try again.");

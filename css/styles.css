@@ -195,45 +195,46 @@ h2 em { color: var(--accent); font-style: normal; }
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 14px; padding: 2.5rem; margin-top: 1.5rem;
 }
-/* Result text left, funding controls right */
+/* Main and detailed results side-by-side */
 .impact-result-wrap {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1.25rem 2rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
   align-items: start;
   margin-top: 1rem;
 }
 #fundingControls {
-  margin-top: 0;
-  min-width: 220px;
-  max-width: 300px;
-  padding-left: 1.25rem;
-  border-left: 1px solid var(--border);
+  margin-top: 1.15rem;
+  width: 100%;
+  max-width: 720px;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
 }
 .funding-explanation {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   line-height: 1.45;
   color: var(--ink2);
   margin: 0.5rem 0 0.75rem;
 }
 .funding-split-row,
 .funding-pay-row {
-  margin-top: 0.75rem;
+  margin-top: 0.95rem;
 }
 .funding-split-row label,
 .funding-pay-row label {
   display: block;
-  font-size: 0.82rem;
-  margin-bottom: 0.35rem;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
 }
 .funding-split-rest {
   font-weight: 400;
   opacity: 0.75;
-  font-size: 0.78rem;
+  font-size: 0.9rem;
 }
 #fundingControls input[type="range"] {
   width: 100%;
-  max-width: 220px;
+  max-width: 100%;
 }
 .funding-split-row input[type="range"] {
   max-width: 100%;
@@ -244,10 +245,7 @@ h2 em { color: var(--accent); font-style: normal; }
   }
   #fundingControls {
     max-width: none;
-    padding-left: 0;
-    padding-top: 1rem;
-    border-left: none;
-    border-top: 1px solid var(--border);
+    padding: 0.95rem;
   }
 }
 #fundingControls button {
@@ -262,6 +260,8 @@ h2 em { color: var(--accent); font-style: normal; }
 .impact-result-wrap .impact-result { margin-top: 0; }
 .impact-result { margin-top: 1rem; color: var(--ink2); font-size: 0.95rem; }
 .impact-result strong { color: var(--accent); }
+#impactResult,
+#region-output { width: 100%; }
 .impact-box input,
 .impact-input {
   width: 100%;

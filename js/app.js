@@ -25,6 +25,33 @@ const POSTCODE_POP = {
   "2160": 80000,
   "2170": 85000
 };
+const REGION_DATA = {
+  "Western Sydney": {
+    population: 980000,
+    hospitals: ["Westmead Hospital", "Blacktown Hospital", "Mount Druitt Hospital"],
+    schools: "Public schools across Western Sydney"
+  },
+  "South Western Sydney": {
+    population: 1050000,
+    hospitals: ["Liverpool Hospital", "Campbelltown Hospital", "Bankstown Hospital"],
+    schools: "Public schools across South Western Sydney"
+  },
+  "Sydney": {
+    population: 700000,
+    hospitals: ["Royal Prince Alfred Hospital", "Concord Hospital"],
+    schools: "Public schools across Inner Sydney"
+  },
+  "South Eastern Sydney": {
+    population: 950000,
+    hospitals: ["St George Hospital", "Sutherland Hospital", "Prince of Wales Hospital"],
+    schools: "Public schools across South Eastern Sydney"
+  },
+  "Northern Sydney": {
+    population: 980000,
+    hospitals: ["Royal North Shore Hospital", "Hornsby Hospital", "Northern Beaches Hospital"],
+    schools: "Public schools across Northern Sydney"
+  }
+};
 
 const SUPABASE_URL = "https://umouqdubdlqaofqukawa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
@@ -247,7 +274,9 @@ async function showImpact() {
     document.getElementById('splitSlider')?.value ||
     50
   , 10);
+  const nurseSplit = nurseBudgetPercent;
   const teacherBudgetPercent = 100 - nurseBudgetPercent;
+  const teacherSplit = teacherBudgetPercent;
 
   // --- SPLIT ---
   const nurseBudget = TOTAL_BUDGET * (nurseBudgetPercent / 100);
@@ -336,6 +365,60 @@ async function showImpact() {
       ${perPeopleHtml}
     </p>
   `;
+
+  // Region output: real hospitals + school system impact.
+  var regionSelectEl = document.getElementById("regionSelect");
+  var regionOutputEl = document.getElementById("region-output");
+  if (regionSelectEl && regionOutputEl) {
+    var region = regionSelectEl.value;
+    var data = REGION_DATA[region];
+    if (data) {
+      var regionPop = data.population;
+      var regionShare = regionPop / NSW_POPULATION;
+      var regionTotalWorkers = Math.floor(MAX_WORKERS * regionShare);
+
+      var nurseRatio = nurseSplit / 100;
+      var teacherRatio = teacherSplit / 100;
+
+      var regionNurses = Math.floor(regionTotalWorkers * nurseRatio);
+      var regionTeachers = Math.floor(regionTotalWorkers * teacherRatio);
+
+      var regionNursePerPeople = regionNurses > 0 ? Math.floor(regionPop / regionNurses) : 0;
+      var regionTeacherPerPeople = regionTeachers > 0 ? Math.floor(regionPop / regionTeachers) : 0;
+
+      var hospitalList = data.hospitals.join(", ");
+
+      regionOutputEl.innerHTML = `
+  🏥 <strong>${region}</strong><br><br>
+
+  <strong>Hospitals:</strong><br>
+  ${hospitalList}
+  <br><br>
+
+  👩‍⚕️ ${regionNurses.toLocaleString()} nurses funded
+  <br>
+  ${regionNurses > 0 ? `➡️ 1 nurse per ${regionNursePerPeople.toLocaleString()} people<br>` : ``}
+
+  <br>
+
+  🏫 <strong>Schools:</strong><br>
+  ${data.schools}
+  <br><br>
+
+  👩‍🏫 ${regionTeachers.toLocaleString()} teachers funded
+  <br>
+  ${regionTeachers > 0 ? `➡️ 1 teacher per ${regionTeacherPerPeople.toLocaleString()} people` : ``}
+
+  <br><br>
+
+  <span style="font-size:14px; opacity:0.7;">
+    Based on a $500M model distributed across NSW regions
+  </span>
+`;
+    } else {
+      regionOutputEl.innerHTML = "";
+    }
+  }
 }
 
 function setFundingExplanationHidden() {

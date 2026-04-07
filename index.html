@@ -35,6 +35,44 @@
     <a href="#join" class="nav-cta">Get Involved</a>
   </nav>
 
+  <!-- IMPACT CALCULATOR -->
+  <section>
+    <div class="section-label">Local Impact</div>
+    <h2>See What Your Area <em>Could Gain</em></h2>
+    <div class="impact-box">
+      <input id="locationInput" class="impact-input" type="text" inputmode="text" autocomplete="postal-code"
+        placeholder="Enter postcode or suburb (e.g. 2044 or Newtown)">
+      <button type="button" id="impactShowBtn" class="impact-btn" onclick="calculateImpact()">Show My Area</button>
+      <p class="impact-trust-line">Based on NSW land and revenue estimates. Conservative assumptions.</p>
+      <div class="impact-note-box">
+        Retaining nurses and teachers in NSW keeps skilled players looking after you, your family and your friends.
+        Perhaps a bigger payrise will keep our best from moving to other states for better pay. Try the payrise slider
+        to see what you can do for them.
+      </div>
+      <div class="impact-result-wrap">
+        <div id="impactResult" class="impact-result"></div>
+        <div id="fundingControls">
+          <label><strong>Choose focus:</strong></label>
+          <p id="fundingExplanation" class="funding-explanation" aria-live="polite" hidden></p>
+          <div class="funding-split-row">
+            <label><strong>Budget to nurses:</strong> <span id="splitValue">50</span>% <span class="funding-split-rest">(rest to teachers)</span></label>
+            <input type="range" id="splitSlider" min="0" max="100" value="50" oninput="updateSplit(this.value)">
+          </div>
+          <div class="funding-pay-row">
+            <label><strong>Nurses pay rise:</strong> <span id="payValueNurses">0</span>%</label>
+            <input type="range" id="paySliderNurses" min="0" max="12" value="0" oninput="updatePayNurses(this.value)">
+          </div>
+          <div class="funding-pay-row">
+            <label><strong>Teachers pay rise:</strong> <span id="payValueTeachers">0</span>%</label>
+            <input type="range" id="paySliderTeachers" min="0" max="12" value="0" oninput="updatePayTeachers(this.value)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
   <!-- HERO -->
   <div class="hero">
     <div class="hero-label">NSW Legislative Council · Independent</div>
@@ -107,44 +145,6 @@
       <div class="prob-card">
         <div class="prob-num">03</div>
         <p>Everyday Australians carry the tax burden while some large institutions contribute less than comparable entities.</p>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- IMPACT CALCULATOR -->
-  <section>
-    <div class="section-label">Local Impact</div>
-    <h2>See What Your Area <em>Could Gain</em></h2>
-    <div class="impact-box">
-      <input id="locationInput" class="impact-input" type="text" inputmode="text" autocomplete="postal-code"
-        placeholder="Enter postcode or suburb (e.g. 2044 or Newtown)">
-      <button type="button" id="impactShowBtn" class="impact-btn" onclick="calculateImpact()">Show My Area</button>
-      <p class="impact-trust-line">Based on NSW land and revenue estimates. Conservative assumptions.</p>
-      <div class="impact-note-box">
-        Retaining nurses and teachers in NSW keeps skilled players looking after you, your family and your friends.
-        Perhaps a bigger payrise will keep our best from moving to other states for better pay. Try the payrise slider
-        to see what you can do for them.
-      </div>
-      <div class="impact-result-wrap">
-        <div id="impactResult" class="impact-result"></div>
-        <div id="fundingControls">
-          <label><strong>Choose focus:</strong></label>
-          <p id="fundingExplanation" class="funding-explanation" aria-live="polite" hidden></p>
-          <div class="funding-split-row">
-            <label><strong>Budget to nurses:</strong> <span id="splitValue">50</span>% <span class="funding-split-rest">(rest to teachers)</span></label>
-            <input type="range" id="splitSlider" min="0" max="100" value="50" oninput="updateSplit(this.value)">
-          </div>
-          <div class="funding-pay-row">
-            <label><strong>Nurses pay rise:</strong> <span id="payValueNurses">0</span>%</label>
-            <input type="range" id="paySliderNurses" min="0" max="12" value="0" oninput="updatePayNurses(this.value)">
-          </div>
-          <div class="funding-pay-row">
-            <label><strong>Teachers pay rise:</strong> <span id="payValueTeachers">0</span>%</label>
-            <input type="range" id="paySliderTeachers" min="0" max="12" value="0" oninput="updatePayTeachers(this.value)">
-          </div>
-        </div>
       </div>
     </div>
   </section>

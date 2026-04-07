@@ -70,25 +70,27 @@
         Perhaps a bigger payrise will keep our best from moving to other states for better pay. Try the payrise slider
         to see what you can do for them.
       </div>
-      <div id="fundingControls">
-        <label><strong>Choose focus:</strong></label>
-        <p id="fundingExplanation" class="funding-explanation" aria-live="polite" hidden></p>
-        <div class="funding-split-row">
-          <label><strong>Budget to nurses:</strong> <span id="splitValue">50</span>% <span class="funding-split-rest">(rest to teachers)</span></label>
-          <input type="range" id="splitSlider" min="0" max="100" value="50" oninput="updateSplit(this.value)">
+      <div class="impact-controls-row">
+        <div id="fundingControls">
+          <label><strong>Choose focus:</strong></label>
+          <p id="fundingExplanation" class="funding-explanation" aria-live="polite" hidden></p>
+          <div class="funding-split-row">
+            <label><strong>Budget to nurses:</strong> <span id="splitValue">50</span>% <span class="funding-split-rest">(rest to teachers)</span></label>
+            <input type="range" id="splitSlider" min="0" max="100" value="50" oninput="updateSplit(this.value)">
+          </div>
+          <div class="funding-pay-row">
+            <label><strong>Nurses pay rise:</strong> <span id="payValueNurses">0</span>%</label>
+            <input type="range" id="paySliderNurses" min="0" max="12" value="0" oninput="updatePayNurses(this.value)">
+          </div>
+          <div class="funding-pay-row">
+            <label><strong>Teachers pay rise:</strong> <span id="payValueTeachers">0</span>%</label>
+            <input type="range" id="paySliderTeachers" min="0" max="12" value="0" oninput="updatePayTeachers(this.value)">
+          </div>
         </div>
-        <div class="funding-pay-row">
-          <label><strong>Nurses pay rise:</strong> <span id="payValueNurses">0</span>%</label>
-          <input type="range" id="paySliderNurses" min="0" max="12" value="0" oninput="updatePayNurses(this.value)">
-        </div>
-        <div class="funding-pay-row">
-          <label><strong>Teachers pay rise:</strong> <span id="payValueTeachers">0</span>%</label>
-          <input type="range" id="paySliderTeachers" min="0" max="12" value="0" oninput="updatePayTeachers(this.value)">
-        </div>
+        <div id="region-output" class="impact-result"></div>
       </div>
       <div class="impact-result-wrap">
         <div id="impactResult" class="impact-result"></div>
-        <div id="region-output" class="impact-result"></div>
         <div class="impact-model-box">
           <strong>Model based on:</strong>
           <ul>

@@ -38,26 +38,67 @@
   <!-- HERO -->
   <div class="hero">
     <div class="hero-label">NSW Legislative Council · Independent</div>
-    <h1>Fairness isn't complicated.<br><em>Pay frontline workers properly.</em></h1>
-    <p class="hero-sub"><span style="white-space:nowrap;">End tax exemptions for wealthy institutions. Fund the services NSW depends on.</span><br>Everyone
-      contributes or no one trusts the system.</p>
+    <h1>Tax the Church.</h1>
+    <p class="hero-sub">Billions in tax-free land. While NSW struggles to fund nurses and teachers.</p>
+    <p>It’s not about religion. It’s about fairness.<br>If land builds wealth, it should pay its share.</p>
     <div class="hero-btns">
       <a href="../member.html" class="btn-primary">Join the Movement</a>
       <a href="#policy" class="btn-secondary">See the Policy</a>
     </div>
   </div>
 
+  <section style="margin-top:60px;">
+    <h2>This isn’t just about churches</h2>
+
+    <p>
+      Churches are part of a wider system where large landholders pay no land tax.
+    </p>
+
+    <p>
+      This includes:
+      <br>• Religious organisations
+      <br>• Charities with large land holdings
+      <br>• Clubs and associations
+    </p>
+
+    <p style="color:#ffd700; font-weight:bold;">
+      The issue isn’t who owns the land. It’s how it’s used.
+    </p>
+  </section>
+
+  <section style="margin-top:40px;">
+    <h2>A simple rule</h2>
+
+    <p style="color:#ffd700; font-weight:bold;">
+      If land is used for public good → it stays tax-free
+      <br>
+      If land builds wealth or sits idle → it should be taxed
+    </p>
+
+    <p>No loopholes. No special treatment.</p>
+  </section>
+
   <div class="divider"></div>
 
   <!-- IMPACT CALCULATOR -->
   <section>
     <div class="section-label">Local Impact</div>
-    <h2>See What Your Area <em>Could Gain</em></h2>
+    <h2>What This Means For Your Area</h2>
     <div class="impact-box">
       <input id="locationInput" class="impact-input" type="text" inputmode="text" autocomplete="postal-code"
         placeholder="Enter postcode or suburb (e.g. 2044 or Newtown)">
+      <select id="regionSelect" class="impact-input">
+        <option>Western Sydney</option>
+        <option>South Western Sydney</option>
+        <option>Sydney</option>
+        <option>South Eastern Sydney</option>
+        <option>Northern Sydney</option>
+      </select>
       <button type="button" id="impactShowBtn" class="impact-btn" onclick="calculateImpact()">Show My Area</button>
-      <p class="impact-trust-line">Based on NSW land and revenue estimates. Conservative assumptions.</p>
+      <p class="impact-trust-line">Based on a conservative $500M annual estimate.</p>
+      <p style="font-size:14px; color:#888;">
+        A full audit of exempt land could reveal significantly more.
+      </p>
       <div class="impact-model-box">
         <strong>Model based on:</strong>
         <ul>
@@ -74,11 +115,17 @@
       </div>
       <div class="impact-result-wrap">
         <div id="impactResult" class="impact-result"></div>
+        <p class="impact-trust-line">Estimated share of funding for your region</p>
+        <p style="font-size:14px; color:#888;">
+          Hospitals and schools serve entire regions — not just one postcode.
+          This estimate reflects your area's share of a statewide investment.
+        </p>
         <div id="fundingControls">
           <label><strong>Choose focus:</strong></label>
           <p id="fundingExplanation" class="funding-explanation" aria-live="polite" hidden></p>
           <div class="funding-split-row">
-            <label><strong>Budget to nurses:</strong> <span id="splitValue">50</span>% <span class="funding-split-rest">(rest to teachers)</span></label>
+            <label><strong>Budget to nurses:</strong> <span id="splitValue">50</span>% <span
+                class="funding-split-rest">(rest to teachers)</span></label>
             <input type="range" id="splitSlider" min="0" max="100" value="50" oninput="updateSplit(this.value)">
           </div>
           <div class="funding-pay-row">
@@ -87,9 +134,11 @@
           </div>
           <div class="funding-pay-row">
             <label><strong>Teachers pay rise:</strong> <span id="payValueTeachers">0</span>%</label>
-            <input type="range" id="paySliderTeachers" min="0" max="12" value="0" oninput="updatePayTeachers(this.value)">
+            <input type="range" id="paySliderTeachers" min="0" max="12" value="0"
+              oninput="updatePayTeachers(this.value)">
           </div>
         </div>
+        <div id="region-output" class="impact-result"></div>
       </div>
     </div>
   </section>
@@ -147,7 +196,8 @@
     <div class="prob-grid">
       <div class="prob-card">
         <div class="prob-num">01</div>
-        <p>Religious organisations own billions in NSW land and many holdings remain exempt from land tax under current rules.</p>
+        <p>Religious organisations own billions in NSW land and many holdings remain exempt from land tax under current
+          rules.</p>
       </div>
       <div class="prob-card">
         <div class="prob-num">02</div>
@@ -155,7 +205,8 @@
       </div>
       <div class="prob-card">
         <div class="prob-num">03</div>
-        <p>Everyday Australians carry the tax burden while some large institutions contribute less than comparable entities.</p>
+        <p>Everyday Australians carry the tax burden while some large institutions contribute less than comparable
+          entities.</p>
       </div>
     </div>
   </section>
@@ -275,13 +326,14 @@
 
   <footer class="site-footer">
     <div class="footer-content">
-      <p class="quote">Fair policy is consistent policy: clear rules, transparent assumptions, and measurable outcomes for NSW communities.</p>
+      <p class="quote">Fair policy is consistent policy: clear rules, transparent assumptions, and measurable outcomes
+        for NSW communities.</p>
       <p class="authorised">Authorised by Matthew White · NSW · taxthe.church</p>
     </div>
   </footer>
 
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="../js/app.js?v=4"></script>
+  <script defer src="../js/app.js?v=8"></script>
 </body>
 
 </html>

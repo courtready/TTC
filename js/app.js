@@ -368,7 +368,6 @@ async function showImpact() {
   const regionSelectEl = document.getElementById("regionSelect");
   if (!resultEl) return;
 
-  let postcodeLookupAvailable = true;
   const hasInput = input.length > 0;
   await updateShowButtonLabel();
   if (hasInput && !postcodeData.length) {
@@ -377,7 +376,6 @@ async function showImpact() {
       await loadPostcodes();
       await updateShowButtonLabel();
     } catch (err) {
-      postcodeLookupAvailable = false;
       console.warn("Postcode lookup unavailable; falling back to region inference.", err);
     }
   }
@@ -404,10 +402,8 @@ async function showImpact() {
         resultEl.innerHTML = "<p>Location not found. Choose a region from the dropdown.</p>";
         return;
       }
-    } else if (!/^\d{4}$/.test(input)) {
-      resultEl.innerHTML = "<p>Suburb lookup is temporarily unavailable. Enter a postcode or choose a region from the dropdown.</p>";
-      return;
     }
+    // No suburb dataset: 4-digit postcode still works via LHD map + inference; other text uses dropdown region only (no error banner).
   }
 
   // --- USER SETTINGS ---
@@ -420,10 +416,6 @@ async function showImpact() {
   const teacherBudgetPercent = 100 - nurseBudgetPercent;
   const teacherSplit = teacherBudgetPercent;
 
-  // --- SPLIT ---
-  const nurseBudget = TOTAL_BUDGET * (nurseBudgetPercent / 100);
-  const teacherBudget = TOTAL_BUDGET * (teacherBudgetPercent / 100);
-
   const nursePayRiseInput = parseInt(
     document.getElementById('nurseRise')?.value ||
     document.getElementById('paySliderNurses')?.value ||
@@ -435,75 +427,47 @@ async function showImpact() {
     0
   , 10) || 0;
 
-  // =========================
-  // PAY COSTS (reduce hiring budget first)
-  // =========================
-  let nursePayCost = (nursePayRiseInput / 100) * TOTAL_NURSES * COST_PER_WORKER;
-  let teacherPayCost = (teacherPayRiseInput / 100) * TOTAL_TEACHERS * COST_PER_WORKER;
-  nursePayCost = Math.min(nursePayCost, nurseBudget);
-  teacherPayCost = Math.min(teacherPayCost, teacherBudget);
-
-  const nurseRemaining = nurseBudget - nursePayCost;
-  const teacherRemaining = teacherBudget - teacherPayCost;
-
-  // =========================
-  // JOBS CREATED (capped to MAX_WORKERS)
-  // =========================
-  let newNurses = Math.floor(nurseRemaining / COST_PER_WORKER);
-  let newTeachers = Math.floor(teacherRemaining / COST_PER_WORKER);
-  const totalWorkers = newNurses + newTeachers;
-  if (totalWorkers > MAX_WORKERS) {
-    const scale = MAX_WORKERS / totalWorkers;
-    newNurses = Math.floor(newNurses * scale);
-    newTeachers = Math.floor(newTeachers * scale);
-  }
-
-  // =========================
-  // PAY RISE OUTPUT
-  // =========================
   const nursePayRise = nursePayRiseInput.toFixed(1);
   const teacherPayRise = teacherPayRiseInput.toFixed(1);
 
   let region = regionSelectEl && regionSelectEl.value ? regionSelectEl.value : "Sydney";
-  if (match) {
-    const postcode = String(match.postcode || "");
-    region = postcodeToLHD[postcode];
-    if (!region) {
-      // Fallback to nearest known postcode region when exact mapping is missing.
+  function applyRegionFromPostcodeString(postcode) {
+    var pc = String(postcode || "");
+    var r = postcodeToLHD[pc];
+    if (!r) {
       var knownPostcodes = Object.keys(postcodeToLHD);
       if (knownPostcodes.length) {
         var best = knownPostcodes[0];
-        var bestDistance = Math.abs(parseInt(postcode, 10) - parseInt(best, 10));
+        var bestDistance = Math.abs(parseInt(pc, 10) - parseInt(best, 10));
         for (var k = 1; k < knownPostcodes.length; k++) {
           var candidate = knownPostcodes[k];
-          var distance = Math.abs(parseInt(postcode, 10) - parseInt(candidate, 10));
+          var distance = Math.abs(parseInt(pc, 10) - parseInt(candidate, 10));
           if (distance < bestDistance) {
             best = candidate;
             bestDistance = distance;
           }
         }
-        region = postcodeToLHD[best];
-        console.warn("Postcode not found in LHD map, using nearest region:", postcode, "=>", region);
+        r = postcodeToLHD[best];
+        console.warn("Postcode not found in LHD map, using nearest region:", pc, "=>", r);
       }
     }
-    if (!region) {
-      region = "Sydney";
-      console.warn("Defaulting to Sydney region for postcode:", postcode);
+    if (!r) {
+      r = inferRegionFromPostcode(pc);
     }
+    if (!r) {
+      r = "Sydney";
+      console.warn("Defaulting to Sydney region for postcode:", pc);
+    }
+    region = r;
     if (regionSelectEl) {
       regionSelectEl.value = region;
     }
   }
-
-  const regionPop = getRegionProfile(region).population || 0;
-  const regionShare = regionPop > 0 ? (regionPop / NSW_POPULATION) : 0;
-  const localNurses = Math.floor(newNurses * regionShare);
-  const localTeachers = Math.floor(newTeachers * regionShare);
-  const nursePerPeople = localNurses > 0 ? Math.floor(regionPop / localNurses) : 0;
-  const teacherPerPeople = localTeachers > 0 ? Math.floor(regionPop / localTeachers) : 0;
-  const perPeopleHtml =
-    (localNurses > 0 ? `➡️ 1 nurse per ${nursePerPeople.toLocaleString()} people<br>` : "") +
-    (localTeachers > 0 ? `➡️ 1 teacher per ${teacherPerPeople.toLocaleString()} people` : "");
+  if (match) {
+    applyRegionFromPostcodeString(match.postcode);
+  } else if (hasInput && /^\d{4}$/.test(input)) {
+    applyRegionFromPostcodeString(input);
+  }
 
   // =========================
   // OUTPUT (NO STYLE CHANGES)
@@ -512,24 +476,9 @@ async function showImpact() {
     <h3>${region}</h3>
     ${match ? `<p>${formatSuburbLabel(match.suburb)} (${match.postcode})</p>` : ""}
 
-    <p>
-      ✔ ${localNurses} nurses funded<br>
-      ✔ ${localTeachers} teachers funded
-    </p>
-
-    <p>AND</p>
-
-    <p>
+    <p class="impact-pay-rise">
       ✔ ${nursePayRise}% pay rise for nurses<br>
       ✔ ${teacherPayRise}% pay rise for teachers
-    </p>
-
-    <p>
-      Based on a $500M annual funding model distributed proportionally.
-    </p>
-
-    <p>
-      ${perPeopleHtml || "⚠️ Region population data unavailable"}
     </p>
   `;
 

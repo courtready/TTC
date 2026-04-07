@@ -77,6 +77,32 @@ h1 em { color: var(--accent); font-style: normal; }
   font-size: clamp(1.1rem, 2vw, 1.4rem);
   color: var(--ink2); max-width: 540px; margin-top: 1.5rem; line-height: 1.5;
 }
+.hero-message {
+  margin-top: 1.5rem;
+  max-width: 38rem;
+  color: var(--ink2);
+  font-size: clamp(0.95rem, 1.6vw, 1.08rem);
+  line-height: 1.65;
+}
+.hero-message p { margin: 0 0 0.85rem; }
+.hero-message p:last-child { margin-bottom: 0; }
+.hero-message-list {
+  list-style: disc;
+  margin: 0 0 0.85rem 1.25rem;
+  padding: 0;
+}
+.hero-message-list li { margin-bottom: 0.25rem; }
+.hero-message-emphasis {
+  color: var(--ink);
+  font-weight: 600;
+}
+.hero-message-rule-title {
+  color: var(--ink);
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.35rem !important;
+}
+.hero-message + .hero-sub { margin-top: 1.75rem; }
 .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2.5rem; }
 .btn-primary {
   background: var(--accent); color: #ffffff;
@@ -211,6 +237,11 @@ h2 em { color: var(--accent); font-style: normal; }
   border: 1px solid var(--border);
   border-radius: 10px;
 }
+#fundingControls > label {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 0.35rem;
+}
 .impact-controls-row {
   display: grid;
   grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
@@ -222,7 +253,7 @@ h2 em { color: var(--accent); font-style: normal; }
   margin-top: 0;
 }
 .funding-explanation {
-  font-size: 0.55rem;
+  font-size: 1.1rem;
   line-height: 1.45;
   color: var(--ink2);
   margin: 0.25rem 0 0.4rem;
@@ -234,13 +265,13 @@ h2 em { color: var(--accent); font-style: normal; }
 .funding-split-row label,
 .funding-pay-row label {
   display: block;
-  font-size: 0.5rem;
+  font-size: 1rem;
   margin-bottom: 0.25rem;
 }
 .funding-split-rest {
   font-weight: 400;
   opacity: 0.75;
-  font-size: 0.45rem;
+  font-size: 0.9rem;
 }
 #fundingControls input[type="range"] {
   width: 100%;
@@ -275,6 +306,7 @@ h2 em { color: var(--accent); font-style: normal; }
 .impact-result strong { color: var(--accent); }
 #impactResult,
 #region-output { width: 100%; }
+.impact-result .impact-pay-rise { margin-top: 1in; }
 .impact-box input,
 .impact-input {
   width: 100%;

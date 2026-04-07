@@ -48,12 +48,48 @@ const DEFAULT_REGION_PROFILE = {
   hospitals: ["Major public hospitals in this region"],
   schools: "Public schools across this region"
 };
+const ALL_REGION_OPTIONS = [
+  "Central Coast",
+  "Far West",
+  "Hunter New England",
+  "Illawarra Shoalhaven",
+  "Mid North Coast",
+  "Murrumbidgee",
+  "Northern NSW",
+  "Northern Sydney",
+  "South Eastern Sydney",
+  "South Western Sydney",
+  "Southern NSW",
+  "Sydney",
+  "Western NSW",
+  "Western Sydney"
+];
 
 function getAllRegionsFromData() {
   var fromMap = Object.values(postcodeToLHD || {});
   var fromStatic = Object.keys(REGION_DATA || {});
-  var all = fromStatic.concat(fromMap).filter(function (v) { return !!v; });
+  var all = fromStatic.concat(fromMap, ALL_REGION_OPTIONS).filter(function (v) { return !!v; });
   return Array.from(new Set(all)).sort();
+}
+
+function inferRegionFromPostcode(postcode) {
+  var n = parseInt(postcode, 10);
+  if (!Number.isFinite(n)) return null;
+  if (n >= 2000 && n <= 2059) return "Sydney";
+  if (n >= 2060 && n <= 2234) return "Northern Sydney";
+  if (n >= 2140 && n <= 2159) return "Western Sydney";
+  if (n >= 2160 && n <= 2206) return "South Western Sydney";
+  if (n >= 2207 && n <= 2234) return "South Eastern Sydney";
+  if (n >= 2250 && n <= 2263) return "Central Coast";
+  if (n >= 2300 && n <= 2400) return "Hunter New England";
+  if (n >= 2444 && n <= 2450) return "Mid North Coast";
+  if (n >= 2460 && n <= 2480) return "Northern NSW";
+  if (n >= 2500 && n <= 2541) return "Illawarra Shoalhaven";
+  if (n >= 2570 && n <= 2620) return "Southern NSW";
+  if (n >= 2640 && n <= 2700) return "Murrumbidgee";
+  if (n >= 2800 && n <= 2870) return "Western NSW";
+  if (n >= 2880 && n <= 2899) return "Far West";
+  return null;
 }
 
 function getRegionProfile(regionName) {
@@ -557,6 +593,10 @@ function resolveRegionFromInput(rawInput) {
       }
       region = postcodeToLHD[best];
     }
+  }
+
+  if (!region && /^\d+$/.test(postcode)) {
+    region = inferRegionFromPostcode(postcode);
   }
 
   if (!region) return null;

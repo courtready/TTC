@@ -40,10 +40,15 @@ function getNswPostcodeFetchUrls() {
   }
   var base = siteAssetsBase || resolveSiteAssetsBase();
   var samePage = new URL("nsw-postcodes.json", window.location.href).href;
+  var samePageParent = new URL("../nsw-postcodes.json", window.location.href).href;
+  var filesRoot = window.location.origin + "/files/nsw-postcodes.json";
   var candidates = [
     base + "nsw-postcodes.json",
+    base + "../nsw-postcodes.json",
     window.location.origin + "/nsw-postcodes.json",
-    samePage
+    filesRoot,
+    samePage,
+    samePageParent
   ];
   for (var c = 0; c < NSW_POSTCODE_CDN_URLS.length; c++) {
     candidates.push(NSW_POSTCODE_CDN_URLS[c]);

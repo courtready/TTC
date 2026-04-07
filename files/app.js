@@ -123,6 +123,21 @@ function formatSuburbLabel(suburb) {
   });
 }
 
+function getElectorateShare(electorate) {
+  if (!electorate || !postcodeData.length) return 0;
+  var total = postcodeData.length;
+  var inElectorate = 0;
+  for (var i = 0; i < postcodeData.length; i++) {
+    if (
+      postcodeData[i].electorate &&
+      cleanInput(postcodeData[i].electorate) === cleanInput(electorate)
+    ) {
+      inElectorate++;
+    }
+  }
+  return total > 0 ? inElectorate / total : 0;
+}
+
 function setFundingExplanationText(
   fundedNurses,
   fundedTeachers,
@@ -234,6 +249,13 @@ async function showImpact() {
   var baselineNurses = Math.floor(budgetNurses / BASE_SALARY);
   var baselineTeachers = Math.floor(budgetTeachers / BASE_SALARY);
 
+  var electorateShare = getElectorateShare(loc.electorate);
+  var localBudget = TOTAL_BUDGET * electorateShare;
+  var localBudgetNurses = localBudget * (nurseBudgetShare / 100);
+  var localBudgetTeachers = localBudget * ((100 - nurseBudgetShare) / 100);
+  var localFundedNurses = Math.floor(localBudgetNurses / costNurse);
+  var localFundedTeachers = Math.floor(localBudgetTeachers / costTeacher);
+
   var diffN = baselineNurses - fundedNurses;
   var diffT = baselineTeachers - fundedTeachers;
 
@@ -251,17 +273,22 @@ async function showImpact() {
 
   let output = `${displayLine}<br><br>
 
+<strong>NSW-wide impact</strong><br>
 ✔ ${fundedNurses.toLocaleString("en-AU")} nurses<br>
 ${payRiseNurses > 0 ? `✔ ${payRiseNurses}% pay rise for all nurses<br>` : ""}
 ✔ ${fundedTeachers.toLocaleString("en-AU")} teachers<br>
 ${payRiseTeachers > 0 ? `✔ ${payRiseTeachers}% pay rise for all teachers<br>` : ""}<br>
+
+<strong>Estimated local area impact (${formatSuburbLabel(loc.electorate || "your electorate")})</strong><br>
+≈ ${localFundedNurses.toLocaleString("en-AU")} nurses<br>
+≈ ${localFundedTeachers.toLocaleString("en-AU")} teachers<br><br>
 
 <strong>You are allocating a fixed $500M budget.</strong><br>
 ${nurseBudgetShare}% of funds to nurses; ${100 - nurseBudgetShare}% to teachers. Increasing pay in either pool reduces headcount there.
 ${comparisonLine}
 
 <div style="font-size:12px; opacity:0.7; margin-top:10px;">
-  Based on ~$100k average cost per worker (salary + super + overhead).
+  NSW totals use a fixed $500M model. Local estimate apportions that model by electorate share in the postcode dataset.
 </div>`;
 
   const footer = `

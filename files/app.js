@@ -195,6 +195,17 @@ async function showImpact() {
   if (!resultEl) return;
 
   if (!postcodeData.length) {
+    resultEl.innerHTML = "<p>Loading data...</p>";
+    try {
+      await loadPostcodes();
+    } catch (err) {
+      resultEl.innerHTML = "<p>Could not load postcode data. Please refresh and try again.</p>";
+      return;
+    }
+  }
+  if (!resultEl) return;
+
+  if (!postcodeData.length) {
     try {
       await loadPostcodes();
     } catch (e) {
@@ -321,7 +332,12 @@ function updatePayTeachers(value) {
 }
 
 window.calculateImpact = function () {
-  void showImpact();
+  void showImpact().catch(function () {
+    var resultEl = document.getElementById('result') || document.getElementById('impactResult');
+    if (resultEl) {
+      resultEl.innerHTML = "<p>Something went wrong. Please refresh and try again.</p>";
+    }
+  });
 };
 window.updateSplit = updateSplit;
 window.updatePayNurses = updatePayNurses;

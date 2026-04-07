@@ -191,7 +191,28 @@ function setFundingExplanationText(
 
 async function showImpact() {
   const input = document.getElementById('locationInput').value.trim().toLowerCase();
-  const resultEl = document.getElementById('result');
+  const resultEl = document.getElementById('result') || document.getElementById('impactResult');
+  if (!resultEl) return;
+
+  if (!postcodeData.length) {
+    resultEl.innerHTML = "<p>Loading data...</p>";
+    try {
+      await loadPostcodes();
+    } catch (err) {
+      resultEl.innerHTML = "<p>Could not load postcode data. Please refresh and try again.</p>";
+      return;
+    }
+  }
+  if (!resultEl) return;
+
+  if (!postcodeData.length) {
+    try {
+      await loadPostcodes();
+    } catch (e) {
+      resultEl.innerHTML = "<p>Could not load postcode data.</p>";
+      return;
+    }
+  }
 
   const match = postcodeData.find(item =>
     item.postcode === input ||
@@ -214,7 +235,11 @@ async function showImpact() {
   const TOTAL_TEACHERS = 95000;
 
   // --- USER SETTINGS ---
-  const nurseBudgetPercent = parseInt(document.getElementById('nurseBudget')?.value || 50);
+  const nurseBudgetPercent = parseInt(
+    document.getElementById('nurseBudget')?.value ||
+    document.getElementById('splitSlider')?.value ||
+    50
+  );
   const teacherBudgetPercent = 100 - nurseBudgetPercent;
 
   // --- SPLIT ---
@@ -230,8 +255,20 @@ async function showImpact() {
   // =========================
   // PAY RISE
   // =========================
-  const nursePayRise = ((nurseBudget / (TOTAL_NURSES * NURSE_COST)) * 100).toFixed(1);
-  const teacherPayRise = ((teacherBudget / (TOTAL_TEACHERS * TEACHER_COST)) * 100).toFixed(1);
+  const nursePayRiseInput =
+    parseFloat(
+      document.getElementById('nurseRise')?.value ||
+      document.getElementById('paySliderNurses')?.value ||
+      0
+    ) || 0;
+  const teacherPayRiseInput =
+    parseFloat(
+      document.getElementById('teacherRise')?.value ||
+      document.getElementById('paySliderTeachers')?.value ||
+      0
+    ) || 0;
+  const nursePayRise = nursePayRiseInput.toFixed(1);
+  const teacherPayRise = teacherPayRiseInput.toFixed(1);
 
   // =========================
   // LOCAL SHARE (STABLE, NON-RANDOM)
@@ -295,7 +332,12 @@ function updatePayTeachers(value) {
 }
 
 window.calculateImpact = function () {
-  void showImpact();
+  void showImpact().catch(function () {
+    var resultEl = document.getElementById('result') || document.getElementById('impactResult');
+    if (resultEl) {
+      resultEl.innerHTML = "<p>Something went wrong. Please refresh and try again.</p>";
+    }
+  });
 };
 window.updateSplit = updateSplit;
 window.updatePayNurses = updatePayNurses;

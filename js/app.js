@@ -403,6 +403,7 @@ async function showImpact() {
   // =========================
   resultEl.innerHTML = `
     <h3>${region}</h3>
+    ${match ? `<p>${formatSuburbLabel(match.suburb)} (${match.postcode})</p>` : ""}
 
     <p>
       ✔ ${localNurses} nurses funded<br>
@@ -548,6 +549,18 @@ function wireLocalImpactControls() {
   if (regionSelect) {
     regionSelect.addEventListener("change", function () {
       void showImpact();
+    });
+  }
+  var locationInput = document.getElementById("locationInput");
+  if (locationInput) {
+    locationInput.addEventListener("change", function () {
+      void showImpact();
+    });
+    locationInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        void showImpact();
+      }
     });
   }
 }

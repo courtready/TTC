@@ -270,6 +270,25 @@ function formatSuburbLabel(suburb) {
   });
 }
 
+function updateShowButtonLabel() {
+  var btn = document.getElementById("impactShowBtn");
+  var inputEl = document.getElementById("locationInput");
+  if (!btn || !inputEl) return;
+
+  var raw = cleanInput(inputEl.value);
+  if (!raw) {
+    btn.textContent = "Show My Area";
+    return;
+  }
+
+  var match = findLocation(raw);
+  if (match && match.suburb) {
+    btn.textContent = "Show " + formatSuburbLabel(match.suburb);
+  } else {
+    btn.textContent = "Show My Area";
+  }
+}
+
 function getElectorateShare(electorate) {
   if (!electorate || !postcodeData.length) return 0;
   var total = postcodeData.length;
@@ -343,10 +362,12 @@ async function showImpact() {
 
   let postcodeLookupAvailable = true;
   const hasInput = input.length > 0;
+  updateShowButtonLabel();
   if (hasInput && !postcodeData.length) {
     resultEl.innerHTML = "<p>Loading data...</p>";
     try {
       await loadPostcodes();
+      updateShowButtonLabel();
     } catch (err) {
       postcodeLookupAvailable = false;
       console.warn("Postcode lookup unavailable; falling back to region inference.", err);
@@ -851,6 +872,7 @@ function wireLocalImpactControls() {
   var locationInput = document.getElementById("locationInput");
   if (locationInput) {
     locationInput.addEventListener("change", function () {
+      updateShowButtonLabel();
       void showImpact();
       void updateImpact();
     });
@@ -862,6 +884,7 @@ function wireLocalImpactControls() {
       }
     });
     locationInput.addEventListener("input", function () {
+      updateShowButtonLabel();
       void updateImpact();
     });
   }
@@ -917,6 +940,7 @@ onDomReady(function () {
   window.addEventListener("hashchange", scrollToHashTarget);
 
   wireLocalImpactControls();
+  updateShowButtonLabel();
   ensurePersuasiveImpactUI();
   ensureRegionSelectOptions();
   void updateImpact();

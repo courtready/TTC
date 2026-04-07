@@ -517,7 +517,7 @@ function shareImpact() {
 
   if (navigator.share) {
     navigator.share({
-      title: "Local Impact",
+      title: "This is what Matt would like to see. From Matthew White | 247 365",
       text: payloadText,
       url: window.location.href
     });

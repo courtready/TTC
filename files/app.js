@@ -514,15 +514,8 @@ function shareImpact() {
   const text = (lastImpactShareText || "").trim();
   const payloadText = text || "See your local impact result on Tax the Church.";
   const payload = `${payloadText}\n${window.location.href}`;
+  const subject = "This is what Matt would like to see. From Matthew White | 247 365";
+  const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(payload)}`;
 
-  if (navigator.share) {
-    navigator.share({
-      title: "This is what Matt would like to see. From Matthew White | 247 365",
-      text: payloadText,
-      url: window.location.href
-    });
-  } else {
-    navigator.clipboard.writeText(payload);
-    alert("Result + link copied to clipboard");
-  }
+  window.location.href = mailtoUrl;
 }

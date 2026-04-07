@@ -546,12 +546,6 @@ async function showImpact() {
   👩‍🏫 ${regionTeachers.toLocaleString()} teachers funded
   <br>
   ${regionTeachers > 0 ? `➡️ 1 teacher per ${regionTeacherPerPeople.toLocaleString()} people` : ``}
-
-  <br><br>
-
-  <span style="font-size:14px; opacity:0.7;">
-    Based on a $500M model distributed across NSW regions
-  </span>
 `;
     } else {
       regionOutputEl.innerHTML = "";

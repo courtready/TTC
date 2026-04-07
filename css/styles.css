@@ -204,33 +204,33 @@ h2 em { color: var(--accent); font-style: normal; }
   margin-top: 1rem;
 }
 #fundingControls {
-  margin-top: 1.15rem;
+  margin-top: 0.6rem;
   width: 100%;
-  max-width: 720px;
-  padding: 1rem 1.1rem;
+  max-width: 420px;
+  padding: 0.5rem 0.6rem;
   border: 1px solid var(--border);
   border-radius: 10px;
 }
 .funding-explanation {
-  font-size: 0.95rem;
+  font-size: 0.55rem;
   line-height: 1.45;
   color: var(--ink2);
-  margin: 0.5rem 0 0.75rem;
+  margin: 0.25rem 0 0.4rem;
 }
 .funding-split-row,
 .funding-pay-row {
-  margin-top: 0.95rem;
+  margin-top: 0.45rem;
 }
 .funding-split-row label,
 .funding-pay-row label {
   display: block;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 .funding-split-rest {
   font-weight: 400;
   opacity: 0.75;
-  font-size: 0.9rem;
+  font-size: 0.45rem;
 }
 #fundingControls input[type="range"] {
   width: 100%;
@@ -245,7 +245,7 @@ h2 em { color: var(--accent); font-style: normal; }
   }
   #fundingControls {
     max-width: none;
-    padding: 0.95rem;
+    padding: 0.5rem;
   }
 }
 #fundingControls button {

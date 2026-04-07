@@ -56,6 +56,13 @@
     <div class="impact-box">
       <input id="locationInput" class="impact-input" type="text" inputmode="text" autocomplete="postal-code"
         placeholder="Enter postcode or suburb (e.g. 2044 or Newtown)">
+      <select id="regionSelect" class="impact-input">
+        <option>Western Sydney</option>
+        <option>South Western Sydney</option>
+        <option>Sydney</option>
+        <option>South Eastern Sydney</option>
+        <option>Northern Sydney</option>
+      </select>
       <button type="button" id="impactShowBtn" class="impact-btn" onclick="calculateImpact()">Show My Area</button>
       <p class="impact-trust-line">Based on NSW land and revenue estimates. Conservative assumptions.</p>
       <div class="impact-model-box">
@@ -74,6 +81,7 @@
       </div>
       <div class="impact-result-wrap">
         <div id="impactResult" class="impact-result"></div>
+        <div id="region-output" class="impact-result"></div>
         <div id="fundingControls">
           <label><strong>Choose focus:</strong></label>
           <p id="fundingExplanation" class="funding-explanation" aria-live="polite" hidden></p>

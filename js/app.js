@@ -486,6 +486,12 @@ function wireLocalImpactControls() {
       updatePayTeachers(this.value);
     });
   }
+  var regionSelect = document.getElementById("regionSelect");
+  if (regionSelect) {
+    regionSelect.addEventListener("change", function () {
+      void showImpact();
+    });
+  }
 }
 
 function scrollToHashTarget() {

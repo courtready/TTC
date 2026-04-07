@@ -5,6 +5,9 @@ let lastImpactShareText = "";
 
 let postcodeData = [];
 let dataLoaded = false;
+let postcodeToLHD = {};
+let lhdPopulation = {};
+let regionDataLoaded = false;
 var siteAssetsBase = null;
 
 const TOTAL_BUDGET = 500000000;
@@ -13,18 +16,6 @@ const MAX_WORKERS = Math.floor(TOTAL_BUDGET / COST_PER_WORKER);
 const NSW_POPULATION = 8200000;
 const TOTAL_NURSES = 180000;
 const TOTAL_TEACHERS = 95000;
-const POSTCODE_POP = {
-  "2044": 42000,
-  "2042": 45000,
-  "2010": 25000,
-  "2000": 30000,
-  "2030": 35000,
-  "2130": 65000,
-  "2140": 70000,
-  "2150": 75000,
-  "2160": 80000,
-  "2170": 85000
-};
 const REGION_DATA = {
   "Western Sydney": {
     population: 980000,
@@ -105,12 +96,35 @@ function getNswPostcodeFetchUrls() {
   });
 }
 
-async function loadPostcodes() {
-  if (dataLoaded) return;
-  if (!siteAssetsBase) {
-    siteAssetsBase = resolveSiteAssetsBase();
+function getDataFetchUrls(filename) {
+  if (window.location.protocol === "file:") {
+    return [new URL(filename, window.location.href).href];
   }
-  var urls = getNswPostcodeFetchUrls();
+  var base = siteAssetsBase || resolveSiteAssetsBase();
+  var samePage = new URL(filename, window.location.href).href;
+  var samePageParent = new URL("../" + filename, window.location.href).href;
+  var filesRoot = window.location.origin + "/files/" + filename;
+  var candidates = [
+    base + filename,
+    base + "../" + filename,
+    window.location.origin + "/" + filename,
+    filesRoot,
+    samePage,
+    samePageParent
+  ];
+  for (var c = 0; c < NSW_POSTCODE_CDN_URLS.length; c++) {
+    candidates.push(NSW_POSTCODE_CDN_URLS[c].replace("nsw-postcodes.json", filename));
+  }
+  var seen = {};
+  return candidates.filter(function (u) {
+    if (seen[u]) return false;
+    seen[u] = true;
+    return true;
+  });
+}
+
+async function fetchJsonWithFallback(filename) {
+  var urls = getDataFetchUrls(filename);
   var lastErr = null;
   for (var j = 0; j < urls.length; j++) {
     try {
@@ -122,25 +136,41 @@ async function loadPostcodes() {
       var raw = await res.text();
       var trimmed = raw.replace(/^\uFEFF/, "").trim();
       if (trimmed.charAt(0) === "<") {
-        lastErr = new Error(
-          "Got HTML instead of JSON (often a missing file or rewrite to index). URL: " +
-            urls[j]
-        );
+        lastErr = new Error("Got HTML instead of JSON: " + urls[j]);
         continue;
       }
-      var data = JSON.parse(trimmed);
-      if (!Array.isArray(data) || !data.length) {
-        lastErr = new Error("Invalid postcode JSON");
-        continue;
-      }
-      postcodeData = data;
-      dataLoaded = true;
-      return;
+      return JSON.parse(trimmed);
     } catch (err) {
       lastErr = err;
     }
   }
-  throw lastErr || new Error("Failed to load NSW postcodes");
+  throw lastErr || new Error("Failed to load " + filename);
+}
+
+async function loadPostcodes() {
+  if (dataLoaded) return;
+  if (!siteAssetsBase) {
+    siteAssetsBase = resolveSiteAssetsBase();
+  }
+  try {
+    var data = await fetchJsonWithFallback("nsw-postcodes.json");
+    if (!Array.isArray(data) || !data.length) {
+      throw new Error("Invalid postcode JSON");
+    }
+    postcodeData = data;
+    dataLoaded = true;
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function loadRegionDatasets() {
+  if (regionDataLoaded) return;
+  var lhdMap = await fetchJsonWithFallback("data/nsw_postcode_lhd.json");
+  var popMap = await fetchJsonWithFallback("data/lhd_population.json");
+  postcodeToLHD = lhdMap || {};
+  lhdPopulation = popMap || {};
+  regionDataLoaded = true;
 }
 
 function cleanInput(input) {
@@ -237,31 +267,37 @@ async function showImpact() {
   const resultEl = document.getElementById('result') || document.getElementById('impactResult');
   if (!resultEl) return;
 
-  if (!postcodeData.length) {
+  if (!postcodeData.length || !regionDataLoaded) {
     resultEl.innerHTML = "<p>Loading data...</p>";
     try {
       await loadPostcodes();
+      await loadRegionDatasets();
     } catch (err) {
+      console.error("Impact data load failed:", err);
       resultEl.innerHTML = "<p>Could not load postcode data. Please refresh and try again.</p>";
       return;
     }
   }
   if (!resultEl) return;
 
-  if (!postcodeData.length) {
+  if (!postcodeData.length || !regionDataLoaded) {
     try {
       await loadPostcodes();
+      await loadRegionDatasets();
     } catch (e) {
+      console.error("Impact data load failed:", e);
       resultEl.innerHTML = "<p>Could not load postcode data.</p>";
       return;
     }
   }
 
-  const match = postcodeData.find(item =>
-    item.postcode === input ||
-    item.suburb.toLowerCase() === input ||
-    item.suburb.toLowerCase().includes(input)
-  );
+  const match = postcodeData.find(function (item) {
+    return (
+      item.postcode === input ||
+      item.suburb.toLowerCase() === input ||
+      item.suburb.toLowerCase().includes(input)
+    );
+  });
 
   if (!match) {
     resultEl.innerHTML = "<p>Location not found.</p>";
@@ -322,28 +358,46 @@ async function showImpact() {
   const nursePayRise = nursePayRiseInput.toFixed(1);
   const teacherPayRise = teacherPayRiseInput.toFixed(1);
 
-  // =========================
-  // LOCAL SHARE (postcode population based)
-  // =========================
   const postcode = String(match.postcode || "");
-  const areaPop = POSTCODE_POP[postcode];
-  const areaShare = areaPop ? (areaPop / NSW_POPULATION) : 0;
-  const localNurses = Math.floor(newNurses * areaShare);
-  const localTeachers = Math.floor(newTeachers * areaShare);
-  const nursePerPeople = localNurses > 0 ? Math.floor(areaPop / localNurses) : 0;
-  const teacherPerPeople = localTeachers > 0 ? Math.floor(areaPop / localTeachers) : 0;
-  const perPeopleHtml = areaPop
-    ? (
-      (localNurses > 0 ? `➡️ 1 nurse per ${nursePerPeople.toLocaleString()} people<br>` : "") +
-      (localTeachers > 0 ? `➡️ 1 teacher per ${teacherPerPeople.toLocaleString()} people` : "")
-    )
-    : "⚠️ Postcode population not in dataset yet";
+  let region = postcodeToLHD[postcode];
+  if (!region) {
+    // Fallback to nearest known postcode region when exact mapping is missing.
+    var knownPostcodes = Object.keys(postcodeToLHD);
+    if (knownPostcodes.length) {
+      var best = knownPostcodes[0];
+      var bestDistance = Math.abs(parseInt(postcode, 10) - parseInt(best, 10));
+      for (var k = 1; k < knownPostcodes.length; k++) {
+        var candidate = knownPostcodes[k];
+        var distance = Math.abs(parseInt(postcode, 10) - parseInt(candidate, 10));
+        if (distance < bestDistance) {
+          best = candidate;
+          bestDistance = distance;
+        }
+      }
+      region = postcodeToLHD[best];
+      console.warn("Postcode not found in LHD map, using nearest region:", postcode, "=>", region);
+    }
+  }
+  if (!region || !REGION_DATA[region]) {
+    region = "Sydney";
+    console.warn("Defaulting to Sydney region for postcode:", postcode);
+  }
+
+  const regionPop = lhdPopulation[region] || REGION_DATA[region].population || 0;
+  const regionShare = regionPop > 0 ? (regionPop / NSW_POPULATION) : 0;
+  const localNurses = Math.floor(newNurses * regionShare);
+  const localTeachers = Math.floor(newTeachers * regionShare);
+  const nursePerPeople = localNurses > 0 ? Math.floor(regionPop / localNurses) : 0;
+  const teacherPerPeople = localTeachers > 0 ? Math.floor(regionPop / localTeachers) : 0;
+  const perPeopleHtml =
+    (localNurses > 0 ? `➡️ 1 nurse per ${nursePerPeople.toLocaleString()} people<br>` : "") +
+    (localTeachers > 0 ? `➡️ 1 teacher per ${teacherPerPeople.toLocaleString()} people` : "");
 
   // =========================
   // OUTPUT (NO STYLE CHANGES)
   // =========================
   resultEl.innerHTML = `
-    <h3>${match.suburb} (${match.postcode})</h3>
+    <h3>${region}</h3>
 
     <p>
       ✔ ${localNurses} nurses funded<br>
@@ -362,7 +416,7 @@ async function showImpact() {
     </p>
 
     <p>
-      ${perPeopleHtml}
+      ${perPeopleHtml || "⚠️ Region population data unavailable"}
     </p>
   `;
 
@@ -373,7 +427,7 @@ async function showImpact() {
     var region = regionSelectEl.value;
     var data = REGION_DATA[region];
     if (data) {
-      var regionPop = data.population;
+      var regionPop = lhdPopulation[region] || data.population;
       var regionShare = regionPop / NSW_POPULATION;
       var regionTotalWorkers = Math.floor(MAX_WORKERS * regionShare);
 
@@ -547,6 +601,9 @@ onDomReady(function () {
 
   loadPostcodes().catch(function (e) {
     console.error("NSW postcodes preload failed:", e);
+  });
+  loadRegionDatasets().catch(function (e) {
+    console.error("Region datasets preload failed:", e);
   });
 
   async function saveSignup(email, source) {

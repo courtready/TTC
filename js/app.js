@@ -531,7 +531,6 @@ async function showImpact() {
     <p>
       ${perPeopleHtml || "⚠️ Region population data unavailable"}
     </p>
-    ${hasInput && !postcodeLookupAvailable ? "<p>Postcode suburb lookup is temporarily unavailable; using postcode-region fallback.</p>" : ""}
   `;
 
   // Region output: real hospitals + school system impact.

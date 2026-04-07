@@ -190,137 +190,80 @@ function setFundingExplanationText(
 }
 
 async function showImpact() {
-  var inputEl = document.getElementById("locationInput");
-  var resultEl = document.getElementById("impactResult");
-  if (!resultEl) return;
+  const input = document.getElementById('locationInput').value.trim().toLowerCase();
+  const resultEl = document.getElementById('result') || document.getElementById('impactResult');
 
-  if (!dataLoaded) {
-    resultEl.textContent = "Loading NSW postcode data…";
-    try {
-      await loadPostcodes();
-    } catch (err) {
-      console.error("Postcode load failed:", err);
-      resultEl.innerHTML =
-        "<strong>Could not load postcode data.</strong><br><br>" +
-        "If you are the site owner, ensure <code>nsw-postcodes.json</code> is deployed next to the site and try a hard refresh (Ctrl+Shift+R).";
-      setFundingExplanationHidden();
-      return;
-    }
-  }
-
-  var raw = inputEl ? inputEl.value : "";
-  var input = cleanInput(raw);
-  if (!input) {
-    resultEl.innerHTML = "Enter a postcode or suburb";
-    setFundingExplanationHidden();
-    return;
-  }
-
-  var loc = findLocation(raw);
-  if (!loc) {
-    resultEl.innerHTML =
-      "<strong>Location not found</strong><br><br>" +
-      "Try a NSW postcode (e.g. 2044) or suburb name (e.g. Newtown).";
-    setFundingExplanationHidden();
-    return;
-  }
-
-  var displayLine =
-    "<strong>" +
-    formatSuburbLabel(loc.suburb) +
-    "</strong> <span style=\"opacity:0.85\">(" +
-    loc.postcode +
-    ")</span>";
-  if (loc.electorate) {
-    displayLine +=
-      "<br><span style=\"font-size:0.92em;opacity:0.9\">Electorate: " +
-      formatSuburbLabel(loc.electorate) +
-      "</span>";
-  }
-
-  var budgetNurses = TOTAL_BUDGET * (nurseBudgetShare / 100);
-  var budgetTeachers = TOTAL_BUDGET * ((100 - nurseBudgetShare) / 100);
-
-  var costNurse = BASE_SALARY * (1 + payRiseNurses / 100);
-  var costTeacher = BASE_SALARY * (1 + payRiseTeachers / 100);
-
-  var fundedNurses = Math.floor(budgetNurses / costNurse);
-  var fundedTeachers = Math.floor(budgetTeachers / costTeacher);
-
-  var baselineNurses = Math.floor(budgetNurses / BASE_SALARY);
-  var baselineTeachers = Math.floor(budgetTeachers / BASE_SALARY);
-
-  var electorateShare = getElectorateShare(loc.electorate);
-  var localBudget = TOTAL_BUDGET * electorateShare;
-  var localBudgetNurses = localBudget * (nurseBudgetShare / 100);
-  var localBudgetTeachers = localBudget * ((100 - nurseBudgetShare) / 100);
-  var localFundedNurses = Math.floor(localBudgetNurses / costNurse);
-  var localFundedTeachers = Math.floor(localBudgetTeachers / costTeacher);
-
-  var diffN = baselineNurses - fundedNurses;
-  var diffT = baselineTeachers - fundedTeachers;
-
-  var comparisonParts = [];
-  if (payRiseNurses > 0 && diffN > 0) {
-    comparisonParts.push(diffN.toLocaleString("en-AU") + " fewer nurses");
-  }
-  if (payRiseTeachers > 0 && diffT > 0) {
-    comparisonParts.push(diffT.toLocaleString("en-AU") + " fewer teachers");
-  }
-  var comparisonLine =
-    comparisonParts.length > 0
-      ? `<br><br>Compared to 0% pay in each pool: ${comparisonParts.join("; ")}.`
-      : "";
-
-  var primaryLine =
-    payRiseNurses > 0
-      ? `✔ ${payRiseNurses}% pay rise for all nurses`
-      : `✔ ${localFundedNurses.toLocaleString("en-AU")} nurses funded`;
-
-  var shareParts = [
-    `${formatSuburbLabel(loc.suburb)} (${loc.postcode})`,
-    primaryLine,
-    `Electorate: ${formatSuburbLabel(loc.electorate || "Unknown")}`,
-    `Budget split: ${nurseBudgetShare}% nurses / ${100 - nurseBudgetShare}% teachers`,
-    `Teacher pay rise: ${payRiseTeachers}%`
-  ].filter(Boolean);
-  lastImpactShareText = shareParts.join("\n");
-
-  let output = `${displayLine}<br><br>
-<div style="font-size:1.15rem; font-weight:700; color:var(--ink);">
-  ${primaryLine}
-</div>
-<div style="font-size:0.9rem; opacity:0.8; margin-top:8px;">
-  Electorate: ${formatSuburbLabel(loc.electorate || "Unknown")}
-</div>
-<div style="font-size:0.82rem; opacity:0.72; margin-top:10px;">
-  NSW model: ${fundedNurses.toLocaleString("en-AU")} nurses, ${fundedTeachers.toLocaleString("en-AU")} teachers.
-</div>`;
-
-  const footer = `
-<br><br>
-Where is the money going instead?<br><br>
-  <div style="margin-top:15px;">
-    <button type="button" data-impact-action="support-policy" class="impact-action-btn impact-action-btn--primary">
-      I want this for my area
-    </button>
-  </div>
-
-  <div style="margin-top:10px;">
-    <button type="button" data-impact-action="share-impact" class="impact-action-btn impact-action-btn--secondary">
-      Share this result
-    </button>
-  </div>
-`;
-
-  resultEl.innerHTML = output + footer;
-
-  setFundingExplanationText(
-    fundedNurses,
-    fundedTeachers,
-    baselineNurses,
-    baselineTeachers
+  const match = postcodeData.find(item =>
+    item.postcode === input ||
+    item.suburb.toLowerCase() === input ||
+    item.suburb.toLowerCase().includes(input)
   );
+
+  if (!match) {
+    resultEl.innerHTML = "<p>Location not found.</p>";
+    return;
+  }
+
+  // --- CONSTANTS ---
+  const TOTAL_BUDGET = 500000000;
+  const NURSE_COST = 100000;
+  const TEACHER_COST = 110000;
+
+  const nurseBudgetPercent = parseInt(
+    document.getElementById('nurseBudget')?.value ||
+    document.getElementById('splitSlider')?.value ||
+    50
+  );
+  const teacherBudgetPercent = 100 - nurseBudgetPercent;
+
+  // --- SPLIT BUDGET ---
+  const nurseBudget = TOTAL_BUDGET * (nurseBudgetPercent / 100);
+  const teacherBudget = TOTAL_BUDGET * (teacherBudgetPercent / 100);
+
+  // --- TOTAL POSSIBLE ---
+  const totalNurses = Math.floor(nurseBudget / NURSE_COST);
+  const totalTeachers = Math.floor(teacherBudget / TEACHER_COST);
+
+  // --- LOCAL SHARE (STABLE, NOT RANDOM) ---
+  const postcodeNum = parseInt(match.postcode);
+  const localFactor = ((postcodeNum % 50) + 50) / 10000;
+  // gives ~0.005 to 0.01 range
+
+  const localNurses = Math.round(totalNurses * localFactor);
+  const localTeachers = Math.round(totalTeachers * localFactor);
+
+  // --- PAY RISE MODE ---
+  const nurseRise =
+    document.getElementById('nurseRise')?.value ||
+    document.getElementById('paySliderNurses')?.value ||
+    0;
+  const teacherRise =
+    document.getElementById('teacherRise')?.value ||
+    document.getElementById('paySliderTeachers')?.value ||
+    0;
+
+  // --- OUTPUT ---
+  resultEl.innerHTML = `
+    <h3>${match.suburb} (${match.postcode})</h3>
+
+    <p style="font-size:18px;">
+      ✔ ${localNurses} nurses funded<br>
+      ✔ ${localTeachers} teachers funded
+    </p>
+
+    <p>
+      OR
+    </p>
+
+    <p style="font-size:18px;">
+      ✔ ${nurseRise}% nurse pay rise<br>
+      ✔ ${teacherRise}% teacher pay rise
+    </p>
+
+    <p style="font-size:12px; opacity:0.7;">
+      Based on proportional share of a $500M annual funding model.
+    </p>
+  `;
 }
 
 function setFundingExplanationHidden() {

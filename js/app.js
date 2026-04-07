@@ -341,15 +341,15 @@ async function showImpact() {
   const regionSelectEl = document.getElementById("regionSelect");
   if (!resultEl) return;
 
+  let postcodeLookupAvailable = true;
   const hasInput = input.length > 0;
   if (hasInput && !postcodeData.length) {
     resultEl.innerHTML = "<p>Loading data...</p>";
     try {
       await loadPostcodes();
     } catch (err) {
-      console.error("Impact data load failed:", err);
-      resultEl.innerHTML = "<p>Could not load postcode data. Please refresh and try again.</p>";
-      return;
+      postcodeLookupAvailable = false;
+      console.warn("Postcode lookup unavailable; falling back to region inference.", err);
     }
   }
   if (!regionDataLoaded) {
@@ -363,15 +363,20 @@ async function showImpact() {
 
   let match = null;
   if (hasInput) {
-    match = postcodeData.find(function (item) {
-      return (
-        item.postcode === input ||
-        item.suburb.toLowerCase() === input ||
-        item.suburb.toLowerCase().includes(input)
-      );
-    });
-    if (!match) {
-      resultEl.innerHTML = "<p>Location not found. Choose a region from the dropdown.</p>";
+    if (postcodeData.length) {
+      match = postcodeData.find(function (item) {
+        return (
+          item.postcode === input ||
+          item.suburb.toLowerCase() === input ||
+          item.suburb.toLowerCase().includes(input)
+        );
+      });
+      if (!match && !/^\d{4}$/.test(input)) {
+        resultEl.innerHTML = "<p>Location not found. Choose a region from the dropdown.</p>";
+        return;
+      }
+    } else if (!/^\d{4}$/.test(input)) {
+      resultEl.innerHTML = "<p>Suburb lookup is temporarily unavailable. Enter a postcode or choose a region from the dropdown.</p>";
       return;
     }
   }
@@ -497,6 +502,7 @@ async function showImpact() {
     <p>
       ${perPeopleHtml || "⚠️ Region population data unavailable"}
     </p>
+    ${hasInput && !postcodeLookupAvailable ? "<p>Postcode suburb lookup is temporarily unavailable; using postcode-region fallback.</p>" : ""}
   `;
 
   // Region output: real hospitals + school system impact.

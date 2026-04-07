@@ -487,6 +487,214 @@ function setFundingExplanationHidden() {
   el.hidden = true;
 }
 
+function resolveRegionFromInput(rawInput) {
+  var input = cleanInput(rawInput);
+  if (!input) return null;
+
+  var match = null;
+  if (postcodeData.length) {
+    match = postcodeData.find(function (item) {
+      return (
+        item.postcode === input ||
+        cleanInput(item.suburb) === input ||
+        cleanInput(item.suburb).includes(input)
+      );
+    });
+  }
+
+  var postcode = match ? String(match.postcode || "") : input;
+  var region = postcodeToLHD[postcode];
+
+  if (!region) {
+    var knownPostcodes = Object.keys(postcodeToLHD);
+    if (knownPostcodes.length && /^\d+$/.test(postcode)) {
+      var best = knownPostcodes[0];
+      var bestDistance = Math.abs(parseInt(postcode, 10) - parseInt(best, 10));
+      for (var i = 1; i < knownPostcodes.length; i++) {
+        var candidate = knownPostcodes[i];
+        var distance = Math.abs(parseInt(postcode, 10) - parseInt(candidate, 10));
+        if (distance < bestDistance) {
+          best = candidate;
+          bestDistance = distance;
+        }
+      }
+      region = postcodeToLHD[best];
+    }
+  }
+
+  if (!region || !REGION_DATA[region]) return null;
+  return region;
+}
+
+function calculateImpactForRegion(region, nurseSplit) {
+  var teacherSplit = 1 - nurseSplit;
+  var nurseBudget = TOTAL_BUDGET * nurseSplit;
+  var teacherBudget = TOTAL_BUDGET * teacherSplit;
+
+  var nursePayRiseInput = parseInt(
+    document.getElementById('nurseRise')?.value ||
+    document.getElementById('paySliderNurses')?.value ||
+    0,
+    10
+  ) || 0;
+  var teacherPayRiseInput = parseInt(
+    document.getElementById('teacherRise')?.value ||
+    document.getElementById('paySliderTeachers')?.value ||
+    0,
+    10
+  ) || 0;
+
+  var nursePayCost = (nursePayRiseInput / 100) * TOTAL_NURSES * COST_PER_WORKER;
+  var teacherPayCost = (teacherPayRiseInput / 100) * TOTAL_TEACHERS * COST_PER_WORKER;
+  nursePayCost = Math.min(nursePayCost, nurseBudget);
+  teacherPayCost = Math.min(teacherPayCost, teacherBudget);
+
+  var nurseRemaining = nurseBudget - nursePayCost;
+  var teacherRemaining = teacherBudget - teacherPayCost;
+
+  var newNurses = Math.floor(nurseRemaining / COST_PER_WORKER);
+  var newTeachers = Math.floor(teacherRemaining / COST_PER_WORKER);
+  var totalWorkers = newNurses + newTeachers;
+  if (totalWorkers > MAX_WORKERS) {
+    var scale = MAX_WORKERS / totalWorkers;
+    newNurses = Math.floor(newNurses * scale);
+    newTeachers = Math.floor(newTeachers * scale);
+  }
+
+  var regionPop = lhdPopulation[region] || REGION_DATA[region].population || 0;
+  var regionShare = regionPop > 0 ? regionPop / NSW_POPULATION : 0;
+
+  return {
+    nursesFunded: Math.floor(newNurses * regionShare),
+    teachersFunded: Math.floor(newTeachers * regionShare),
+    nursePayRise: nursePayRiseInput.toFixed(1),
+    teacherPayRise: teacherPayRiseInput.toFixed(1)
+  };
+}
+
+function ensurePersuasiveImpactUI() {
+  var inputEl = document.getElementById('postcodeInput') || document.getElementById('locationInput');
+  if (!inputEl) return;
+
+  if (!document.getElementById('budgetSlider')) {
+    var sliderHTML = `
+<div id="budgetSliderWrap" style="margin-top:20px;">
+  <label><strong>How should funding be split?</strong></label>
+  <input
+    type="range"
+    id="budgetSlider"
+    min="0"
+    max="100"
+    value="50"
+    style="width:100%;"
+  />
+  <div style="display:flex; justify-content:space-between; font-size:14px;">
+    <span id="nursePercent">50% Nurses</span>
+    <span id="teacherPercent">50% Teachers</span>
+  </div>
+</div>
+`;
+    inputEl.insertAdjacentHTML('afterend', sliderHTML);
+  }
+
+  if (!document.getElementById('output')) {
+    var outputDiv = document.createElement('div');
+    outputDiv.id = 'output';
+    outputDiv.style.marginTop = '20px';
+    inputEl.parentNode.appendChild(outputDiv);
+  }
+
+  var slider = document.getElementById('budgetSlider');
+  var nurseLabel = document.getElementById('nursePercent');
+  var teacherLabel = document.getElementById('teacherPercent');
+  var splitSlider = document.getElementById('splitSlider');
+  var splitValue = document.getElementById('splitValue');
+
+  if (slider && !slider.dataset.wired) {
+    if (splitSlider && splitSlider.value) {
+      slider.value = splitSlider.value;
+      if (nurseLabel) nurseLabel.textContent = `${slider.value}% Nurses`;
+      if (teacherLabel) teacherLabel.textContent = `${100 - slider.value}% Teachers`;
+    }
+    slider.addEventListener('input', function () {
+      if (nurseLabel) nurseLabel.textContent = `${slider.value}% Nurses`;
+      if (teacherLabel) teacherLabel.textContent = `${100 - slider.value}% Teachers`;
+      if (splitSlider) splitSlider.value = slider.value;
+      if (splitValue) splitValue.textContent = slider.value;
+      void updateImpact();
+      void showImpact();
+    });
+    slider.dataset.wired = "1";
+  }
+}
+
+async function updateImpact() {
+  var inputEl = document.getElementById('postcodeInput') || document.getElementById('locationInput');
+  var outputEl = document.getElementById('output');
+  if (!inputEl || !outputEl) return;
+
+  if (!regionDataLoaded) {
+    try {
+      await loadRegionDatasets();
+    } catch (err) {
+      console.warn("Region datasets unavailable for persuasive output.", err);
+    }
+  }
+  if (!postcodeData.length) {
+    try {
+      await loadPostcodes();
+    } catch (err2) {
+      console.warn("Postcode dataset unavailable for persuasive output.", err2);
+    }
+  }
+
+  var rawInput = (inputEl.value || "").trim();
+  if (!rawInput) {
+    outputEl.innerHTML = "";
+    return;
+  }
+
+  var region = resolveRegionFromInput(rawInput);
+  var regionSelectEl = document.getElementById("regionSelect");
+  if (regionSelectEl && region) {
+    regionSelectEl.value = region;
+  }
+  if (!region) {
+    outputEl.innerHTML = "Enter a valid NSW postcode";
+    return;
+  }
+
+  var slider = document.getElementById('budgetSlider');
+  var nurseSplit = slider ? parseInt(slider.value, 10) / 100 : 0.5;
+  var result = calculateImpactForRegion(region, nurseSplit);
+
+  outputEl.innerHTML = `
+    <div style="margin-top:20px; line-height:1.6;">
+      <div style="font-size:18px; font-weight:bold;">
+        ${region}
+      </div>
+
+      <div style="margin-top:10px;">
+        This funding delivers real impact in your community:
+      </div>
+
+      <div style="margin-top:12px;">
+        ✔ <strong>${result.nursesFunded}</strong> additional nurses on the ground<br>
+        ✔ <strong>${result.teachersFunded}</strong> additional teachers in classrooms
+      </div>
+
+      <div style="margin-top:12px;">
+        ✔ <strong>${result.nursePayRise}%</strong> pay rise for existing nurses<br>
+        ✔ <strong>${result.teacherPayRise}%</strong> pay rise for existing teachers
+      </div>
+
+      <div style="margin-top:14px; font-size:14px; opacity:0.85;">
+        That means shorter hospital wait times, more support for families, and better outcomes for students.
+      </div>
+    </div>
+  `;
+}
+
 function updateSplit(value) {
   nurseBudgetShare = parseInt(value, 10);
   var el = document.getElementById("splitValue");
@@ -555,12 +763,17 @@ function wireLocalImpactControls() {
   if (locationInput) {
     locationInput.addEventListener("change", function () {
       void showImpact();
+      void updateImpact();
     });
     locationInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         e.preventDefault();
         void showImpact();
+        void updateImpact();
       }
+    });
+    locationInput.addEventListener("input", function () {
+      void updateImpact();
     });
   }
 }
@@ -615,6 +828,8 @@ onDomReady(function () {
   window.addEventListener("hashchange", scrollToHashTarget);
 
   wireLocalImpactControls();
+  ensurePersuasiveImpactUI();
+  void updateImpact();
 
   loadPostcodes().catch(function (e) {
     console.error("NSW postcodes preload failed:", e);

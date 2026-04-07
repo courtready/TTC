@@ -270,7 +270,7 @@ function formatSuburbLabel(suburb) {
   });
 }
 
-function updateShowButtonLabel() {
+async function updateShowButtonLabel() {
   var btn = document.getElementById("impactShowBtn");
   var inputEl = document.getElementById("locationInput");
   if (!btn || !inputEl) return;
@@ -279,6 +279,14 @@ function updateShowButtonLabel() {
   if (!raw) {
     btn.textContent = "Show My Area";
     return;
+  }
+
+  if (!postcodeData.length) {
+    try {
+      await loadPostcodes();
+    } catch (e) {
+      // Keep fallback label if postcode data is unavailable.
+    }
   }
 
   var match = findLocation(raw);
@@ -362,12 +370,12 @@ async function showImpact() {
 
   let postcodeLookupAvailable = true;
   const hasInput = input.length > 0;
-  updateShowButtonLabel();
+  await updateShowButtonLabel();
   if (hasInput && !postcodeData.length) {
     resultEl.innerHTML = "<p>Loading data...</p>";
     try {
       await loadPostcodes();
-      updateShowButtonLabel();
+      await updateShowButtonLabel();
     } catch (err) {
       postcodeLookupAvailable = false;
       console.warn("Postcode lookup unavailable; falling back to region inference.", err);
@@ -752,10 +760,8 @@ async function updateImpact() {
   }
 
   var rawInput = (inputEl.value || "").trim();
-  if (!rawInput) {
-    outputEl.innerHTML = "";
-    return;
-  }
+  outputEl.innerHTML = "";
+  if (!rawInput) return;
 
   var region = resolveRegionFromInput(rawInput);
   var regionSelectEl = document.getElementById("regionSelect");
@@ -767,35 +773,7 @@ async function updateImpact() {
     return;
   }
 
-  var slider = document.getElementById('budgetSlider');
-  var nurseSplit = slider ? parseInt(slider.value, 10) / 100 : 0.5;
-  var result = calculateImpactForRegion(region, nurseSplit);
-
-    outputEl.innerHTML = `
-    <div style="margin-top:20px; line-height:1.6;">
-      <div style="font-size:18px; font-weight:bold;">
-        ${region}
-      </div>
-
-      <div style="margin-top:10px;">
-        This funding delivers real impact in your community:
-      </div>
-
-      <div style="margin-top:12px;">
-        ✔ <strong>${result.nursesFunded}</strong> additional nurses on the ground<br>
-        ✔ <strong>${result.teachersFunded}</strong> additional teachers in classrooms
-      </div>
-
-      <div style="margin-top:12px;">
-        ✔ <strong>${result.nursePayRise}%</strong> pay rise for existing nurses<br>
-        ✔ <strong>${result.teacherPayRise}%</strong> pay rise for existing teachers
-      </div>
-
-      <div style="margin-top:14px; font-size:14px; opacity:0.85;">
-        That means shorter hospital wait times, more support for families, and better outcomes for students.
-      </div>
-    </div>
-  `;
+  // Removed duplicate persuasive summary block. Main result cards remain the source of truth.
   } catch (err3) {
     console.warn("Persuasive output update failed, keeping core calculator active:", err3);
   }
@@ -872,7 +850,7 @@ function wireLocalImpactControls() {
   var locationInput = document.getElementById("locationInput");
   if (locationInput) {
     locationInput.addEventListener("change", function () {
-      updateShowButtonLabel();
+      void updateShowButtonLabel();
       void showImpact();
       void updateImpact();
     });
@@ -884,7 +862,7 @@ function wireLocalImpactControls() {
       }
     });
     locationInput.addEventListener("input", function () {
-      updateShowButtonLabel();
+      void updateShowButtonLabel();
       void updateImpact();
     });
   }
@@ -940,7 +918,7 @@ onDomReady(function () {
   window.addEventListener("hashchange", scrollToHashTarget);
 
   wireLocalImpactControls();
-  updateShowButtonLabel();
+  void updateShowButtonLabel();
   ensurePersuasiveImpactUI();
   ensureRegionSelectOptions();
   void updateImpact();

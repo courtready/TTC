@@ -294,7 +294,7 @@ async function showImpact() {
       ✔ ${localTeachers} teachers funded
     </p>
 
-    <p>OR</p>
+    <p>AND</p>
 
     <p>
       ✔ ${nursePayRise}% pay rise for nurses<br>

@@ -7,8 +7,24 @@ let postcodeData = [];
 let dataLoaded = false;
 var siteAssetsBase = null;
 
-const TOTAL_BUDGET = 500000000; // $500M
-const BASE_SALARY = 100000; // average fully loaded cost per worker
+const TOTAL_BUDGET = 500000000;
+const COST_PER_WORKER = 110000;
+const MAX_WORKERS = Math.floor(TOTAL_BUDGET / COST_PER_WORKER);
+const NSW_POPULATION = 8200000;
+const TOTAL_NURSES = 180000;
+const TOTAL_TEACHERS = 95000;
+const POSTCODE_POP = {
+  "2044": 42000,
+  "2042": 45000,
+  "2010": 25000,
+  "2000": 30000,
+  "2030": 35000,
+  "2130": 65000,
+  "2140": 70000,
+  "2150": 75000,
+  "2160": 80000,
+  "2170": 85000
+};
 
 const SUPABASE_URL = "https://umouqdubdlqaofqukawa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
@@ -225,48 +241,51 @@ async function showImpact() {
     return;
   }
 
-  // --- CONSTANTS (DEFENSIBLE MODEL) ---
-  const TOTAL_BUDGET = 500000000;
-
-  const NURSE_COST = 100000;
-  const TEACHER_COST = 110000;
-
-  const TOTAL_NURSES = 90000;
-  const TOTAL_TEACHERS = 95000;
-
   // --- USER SETTINGS ---
   const nurseBudgetPercent = parseInt(
     document.getElementById('nurseBudget')?.value ||
     document.getElementById('splitSlider')?.value ||
     50
-  );
+  , 10);
   const teacherBudgetPercent = 100 - nurseBudgetPercent;
 
   // --- SPLIT ---
   const nurseBudget = TOTAL_BUDGET * (nurseBudgetPercent / 100);
   const teacherBudget = TOTAL_BUDGET * (teacherBudgetPercent / 100);
 
-  // =========================
-  // PAY RISE INPUTS
-  // =========================
-  const nursePayRiseInput = parseFloat(
+  const nursePayRiseInput = parseInt(
     document.getElementById('nurseRise')?.value ||
     document.getElementById('paySliderNurses')?.value ||
     0
-  ) || 0;
-  const teacherPayRiseInput = parseFloat(
+  , 10) || 0;
+  const teacherPayRiseInput = parseInt(
     document.getElementById('teacherRise')?.value ||
     document.getElementById('paySliderTeachers')?.value ||
     0
-  ) || 0;
+  , 10) || 0;
 
   // =========================
-  // JOBS CREATED (after selected pay rises)
+  // PAY COSTS (reduce hiring budget first)
   // =========================
-  const adjustedNurseCost = NURSE_COST * (1 + nursePayRiseInput / 100);
-  const adjustedTeacherCost = TEACHER_COST * (1 + teacherPayRiseInput / 100);
-  const newNurses = Math.floor(nurseBudget / adjustedNurseCost);
-  const newTeachers = Math.floor(teacherBudget / adjustedTeacherCost);
+  let nursePayCost = (nursePayRiseInput / 100) * TOTAL_NURSES * COST_PER_WORKER;
+  let teacherPayCost = (teacherPayRiseInput / 100) * TOTAL_TEACHERS * COST_PER_WORKER;
+  nursePayCost = Math.min(nursePayCost, nurseBudget);
+  teacherPayCost = Math.min(teacherPayCost, teacherBudget);
+
+  const nurseRemaining = nurseBudget - nursePayCost;
+  const teacherRemaining = teacherBudget - teacherPayCost;
+
+  // =========================
+  // JOBS CREATED (capped to MAX_WORKERS)
+  // =========================
+  let newNurses = Math.floor(nurseRemaining / COST_PER_WORKER);
+  let newTeachers = Math.floor(teacherRemaining / COST_PER_WORKER);
+  const totalWorkers = newNurses + newTeachers;
+  if (totalWorkers > MAX_WORKERS) {
+    const scale = MAX_WORKERS / totalWorkers;
+    newNurses = Math.floor(newNurses * scale);
+    newTeachers = Math.floor(newTeachers * scale);
+  }
 
   // =========================
   // PAY RISE OUTPUT
@@ -275,13 +294,21 @@ async function showImpact() {
   const teacherPayRise = teacherPayRiseInput.toFixed(1);
 
   // =========================
-  // LOCAL SHARE (STABLE, NON-RANDOM)
+  // LOCAL SHARE (postcode population based)
   // =========================
-  const postcodeNum = parseInt(match.postcode);
-  const localShare = 0.006 + ((postcodeNum % 60) / 10000);
-
-  const localNurses = Math.round(newNurses * localShare);
-  const localTeachers = Math.round(newTeachers * localShare);
+  const postcode = String(match.postcode || "");
+  const areaPop = POSTCODE_POP[postcode];
+  const areaShare = areaPop ? (areaPop / NSW_POPULATION) : 0;
+  const localNurses = Math.floor(newNurses * areaShare);
+  const localTeachers = Math.floor(newTeachers * areaShare);
+  const nursePerPeople = localNurses > 0 ? Math.floor(areaPop / localNurses) : 0;
+  const teacherPerPeople = localTeachers > 0 ? Math.floor(areaPop / localTeachers) : 0;
+  const perPeopleHtml = areaPop
+    ? (
+      (localNurses > 0 ? `➡️ 1 nurse per ${nursePerPeople.toLocaleString()} people<br>` : "") +
+      (localTeachers > 0 ? `➡️ 1 teacher per ${teacherPerPeople.toLocaleString()} people` : "")
+    )
+    : "⚠️ Postcode population not in dataset yet";
 
   // =========================
   // OUTPUT (NO STYLE CHANGES)
@@ -303,6 +330,10 @@ async function showImpact() {
 
     <p>
       Based on a $500M annual funding model distributed proportionally.
+    </p>
+
+    <p>
+      ${perPeopleHtml}
     </p>
   `;
 }

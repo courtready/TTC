@@ -247,16 +247,32 @@ async function showImpact() {
   const teacherBudget = TOTAL_BUDGET * (teacherBudgetPercent / 100);
 
   // =========================
-  // JOBS CREATED
+  // PAY RISE INPUTS
   // =========================
-  const newNurses = Math.floor(nurseBudget / NURSE_COST);
-  const newTeachers = Math.floor(teacherBudget / TEACHER_COST);
+  const nursePayRiseInput = parseFloat(
+    document.getElementById('nurseRise')?.value ||
+    document.getElementById('paySliderNurses')?.value ||
+    0
+  ) || 0;
+  const teacherPayRiseInput = parseFloat(
+    document.getElementById('teacherRise')?.value ||
+    document.getElementById('paySliderTeachers')?.value ||
+    0
+  ) || 0;
 
   // =========================
-  // PAY RISE
+  // JOBS CREATED (after selected pay rises)
   // =========================
-  const nursePayRise = ((nurseBudget / (TOTAL_NURSES * NURSE_COST)) * 100).toFixed(1);
-  const teacherPayRise = ((teacherBudget / (TOTAL_TEACHERS * TEACHER_COST)) * 100).toFixed(1);
+  const adjustedNurseCost = NURSE_COST * (1 + nursePayRiseInput / 100);
+  const adjustedTeacherCost = TEACHER_COST * (1 + teacherPayRiseInput / 100);
+  const newNurses = Math.floor(nurseBudget / adjustedNurseCost);
+  const newTeachers = Math.floor(teacherBudget / adjustedTeacherCost);
+
+  // =========================
+  // PAY RISE OUTPUT
+  // =========================
+  const nursePayRise = nursePayRiseInput.toFixed(1);
+  const teacherPayRise = teacherPayRiseInput.toFixed(1);
 
   // =========================
   // LOCAL SHARE (STABLE, NON-RANDOM)

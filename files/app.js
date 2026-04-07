@@ -265,43 +265,42 @@ function setFundingExplanationText(
 async function showImpact() {
   const input = document.getElementById('locationInput').value.trim().toLowerCase();
   const resultEl = document.getElementById('result') || document.getElementById('impactResult');
+  const regionSelectEl = document.getElementById("regionSelect");
   if (!resultEl) return;
 
-  if (!postcodeData.length || !regionDataLoaded) {
+  const hasInput = input.length > 0;
+  if (hasInput && !postcodeData.length) {
     resultEl.innerHTML = "<p>Loading data...</p>";
     try {
       await loadPostcodes();
-      await loadRegionDatasets();
     } catch (err) {
       console.error("Impact data load failed:", err);
       resultEl.innerHTML = "<p>Could not load postcode data. Please refresh and try again.</p>";
       return;
     }
   }
-  if (!resultEl) return;
-
-  if (!postcodeData.length || !regionDataLoaded) {
+  if (!regionDataLoaded) {
     try {
-      await loadPostcodes();
       await loadRegionDatasets();
     } catch (e) {
-      console.error("Impact data load failed:", e);
-      resultEl.innerHTML = "<p>Could not load postcode data.</p>";
-      return;
+      // Keep calculator working with built-in REGION_DATA if JSON files are missing.
+      console.warn("Region datasets unavailable; using built-in region defaults.", e);
     }
   }
 
-  const match = postcodeData.find(function (item) {
-    return (
-      item.postcode === input ||
-      item.suburb.toLowerCase() === input ||
-      item.suburb.toLowerCase().includes(input)
-    );
-  });
-
-  if (!match) {
-    resultEl.innerHTML = "<p>Location not found.</p>";
-    return;
+  let match = null;
+  if (hasInput) {
+    match = postcodeData.find(function (item) {
+      return (
+        item.postcode === input ||
+        item.suburb.toLowerCase() === input ||
+        item.suburb.toLowerCase().includes(input)
+      );
+    });
+    if (!match) {
+      resultEl.innerHTML = "<p>Location not found. Choose a region from the dropdown.</p>";
+      return;
+    }
   }
 
   // --- USER SETTINGS ---
@@ -358,29 +357,35 @@ async function showImpact() {
   const nursePayRise = nursePayRiseInput.toFixed(1);
   const teacherPayRise = teacherPayRiseInput.toFixed(1);
 
-  const postcode = String(match.postcode || "");
-  let region = postcodeToLHD[postcode];
-  if (!region) {
-    // Fallback to nearest known postcode region when exact mapping is missing.
-    var knownPostcodes = Object.keys(postcodeToLHD);
-    if (knownPostcodes.length) {
-      var best = knownPostcodes[0];
-      var bestDistance = Math.abs(parseInt(postcode, 10) - parseInt(best, 10));
-      for (var k = 1; k < knownPostcodes.length; k++) {
-        var candidate = knownPostcodes[k];
-        var distance = Math.abs(parseInt(postcode, 10) - parseInt(candidate, 10));
-        if (distance < bestDistance) {
-          best = candidate;
-          bestDistance = distance;
+  let region = regionSelectEl && regionSelectEl.value ? regionSelectEl.value : "Sydney";
+  if (match) {
+    const postcode = String(match.postcode || "");
+    region = postcodeToLHD[postcode];
+    if (!region) {
+      // Fallback to nearest known postcode region when exact mapping is missing.
+      var knownPostcodes = Object.keys(postcodeToLHD);
+      if (knownPostcodes.length) {
+        var best = knownPostcodes[0];
+        var bestDistance = Math.abs(parseInt(postcode, 10) - parseInt(best, 10));
+        for (var k = 1; k < knownPostcodes.length; k++) {
+          var candidate = knownPostcodes[k];
+          var distance = Math.abs(parseInt(postcode, 10) - parseInt(candidate, 10));
+          if (distance < bestDistance) {
+            best = candidate;
+            bestDistance = distance;
+          }
         }
+        region = postcodeToLHD[best];
+        console.warn("Postcode not found in LHD map, using nearest region:", postcode, "=>", region);
       }
-      region = postcodeToLHD[best];
-      console.warn("Postcode not found in LHD map, using nearest region:", postcode, "=>", region);
     }
-  }
-  if (!region || !REGION_DATA[region]) {
-    region = "Sydney";
-    console.warn("Defaulting to Sydney region for postcode:", postcode);
+    if (!region || !REGION_DATA[region]) {
+      region = "Sydney";
+      console.warn("Defaulting to Sydney region for postcode:", postcode);
+    }
+    if (regionSelectEl && REGION_DATA[region]) {
+      regionSelectEl.value = region;
+    }
   }
 
   const regionPop = lhdPopulation[region] || REGION_DATA[region].population || 0;
@@ -421,7 +426,6 @@ async function showImpact() {
   `;
 
   // Region output: real hospitals + school system impact.
-  var regionSelectEl = document.getElementById("regionSelect");
   var regionOutputEl = document.getElementById("region-output");
   if (regionSelectEl && regionOutputEl) {
     var region = regionSelectEl.value;

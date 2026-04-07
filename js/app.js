@@ -43,6 +43,42 @@ const REGION_DATA = {
     schools: "Public schools across Northern Sydney"
   }
 };
+const DEFAULT_REGION_PROFILE = {
+  population: Math.floor(NSW_POPULATION / 14),
+  hospitals: ["Major public hospitals in this region"],
+  schools: "Public schools across this region"
+};
+
+function getAllRegionsFromData() {
+  var fromMap = Object.values(postcodeToLHD || {});
+  var fromStatic = Object.keys(REGION_DATA || {});
+  var all = fromStatic.concat(fromMap).filter(function (v) { return !!v; });
+  return Array.from(new Set(all)).sort();
+}
+
+function getRegionProfile(regionName) {
+  var base = REGION_DATA[regionName] || DEFAULT_REGION_PROFILE;
+  var population = lhdPopulation[regionName] || base.population || DEFAULT_REGION_PROFILE.population;
+  return {
+    population: population,
+    hospitals: base.hospitals || DEFAULT_REGION_PROFILE.hospitals,
+    schools: base.schools || DEFAULT_REGION_PROFILE.schools
+  };
+}
+
+function ensureRegionSelectOptions() {
+  var regionSelectEl = document.getElementById("regionSelect");
+  if (!regionSelectEl) return;
+  var selected = regionSelectEl.value;
+  var regions = getAllRegionsFromData();
+  if (!regions.length) return;
+  regionSelectEl.innerHTML = regions.map(function (r) {
+    return `<option>${r}</option>`;
+  }).join("");
+  if (selected && regions.indexOf(selected) >= 0) {
+    regionSelectEl.value = selected;
+  }
+}
 
 const SUPABASE_URL = "https://umouqdubdlqaofqukawa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
@@ -171,6 +207,7 @@ async function loadRegionDatasets() {
   postcodeToLHD = lhdMap || {};
   lhdPopulation = popMap || {};
   regionDataLoaded = true;
+  ensureRegionSelectOptions();
 }
 
 function cleanInput(input) {
@@ -379,16 +416,16 @@ async function showImpact() {
         console.warn("Postcode not found in LHD map, using nearest region:", postcode, "=>", region);
       }
     }
-    if (!region || !REGION_DATA[region]) {
+    if (!region) {
       region = "Sydney";
       console.warn("Defaulting to Sydney region for postcode:", postcode);
     }
-    if (regionSelectEl && REGION_DATA[region]) {
+    if (regionSelectEl) {
       regionSelectEl.value = region;
     }
   }
 
-  const regionPop = lhdPopulation[region] || REGION_DATA[region].population || 0;
+  const regionPop = getRegionProfile(region).population || 0;
   const regionShare = regionPop > 0 ? (regionPop / NSW_POPULATION) : 0;
   const localNurses = Math.floor(newNurses * regionShare);
   const localTeachers = Math.floor(newTeachers * regionShare);
@@ -430,9 +467,9 @@ async function showImpact() {
   var regionOutputEl = document.getElementById("region-output");
   if (regionSelectEl && regionOutputEl) {
     var selectedRegion = regionSelectEl.value;
-    var data = REGION_DATA[selectedRegion];
+    var data = getRegionProfile(selectedRegion);
     if (data) {
-      var selectedRegionPop = lhdPopulation[selectedRegion] || data.population;
+      var selectedRegionPop = data.population;
       var selectedRegionShare = selectedRegionPop / NSW_POPULATION;
       var regionTotalWorkers = Math.floor(MAX_WORKERS * selectedRegionShare);
 
@@ -522,7 +559,7 @@ function resolveRegionFromInput(rawInput) {
     }
   }
 
-  if (!region || !REGION_DATA[region]) return null;
+  if (!region) return null;
   return region;
 }
 
@@ -561,7 +598,7 @@ function calculateImpactForRegion(region, nurseSplit) {
     newTeachers = Math.floor(newTeachers * scale);
   }
 
-  var regionPop = lhdPopulation[region] || REGION_DATA[region].population || 0;
+  var regionPop = getRegionProfile(region).population || 0;
   var regionShare = regionPop > 0 ? regionPop / NSW_POPULATION : 0;
 
   return {
@@ -841,6 +878,7 @@ onDomReady(function () {
 
   wireLocalImpactControls();
   ensurePersuasiveImpactUI();
+  ensureRegionSelectOptions();
   void updateImpact();
   void showImpact();
 

@@ -255,20 +255,8 @@ async function showImpact() {
   // =========================
   // PAY RISE
   // =========================
-  const nursePayRiseInput =
-    parseFloat(
-      document.getElementById('nurseRise')?.value ||
-      document.getElementById('paySliderNurses')?.value ||
-      0
-    ) || 0;
-  const teacherPayRiseInput =
-    parseFloat(
-      document.getElementById('teacherRise')?.value ||
-      document.getElementById('paySliderTeachers')?.value ||
-      0
-    ) || 0;
-  const nursePayRise = nursePayRiseInput.toFixed(1);
-  const teacherPayRise = teacherPayRiseInput.toFixed(1);
+  const nursePayRise = ((nurseBudget / (TOTAL_NURSES * NURSE_COST)) * 100).toFixed(1);
+  const teacherPayRise = ((teacherBudget / (TOTAL_TEACHERS * TEACHER_COST)) * 100).toFixed(1);
 
   // =========================
   // LOCAL SHARE (STABLE, NON-RANDOM)

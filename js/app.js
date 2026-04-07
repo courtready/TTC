@@ -272,34 +272,29 @@ async function showImpact() {
       ? `<br><br>Compared to 0% pay in each pool: ${comparisonParts.join("; ")}.`
       : "";
 
+  var primaryLine =
+    payRiseNurses > 0
+      ? `✔ ${payRiseNurses}% pay rise for all nurses`
+      : `✔ ${localFundedNurses.toLocaleString("en-AU")} nurses funded`;
+
   var shareParts = [
     `${formatSuburbLabel(loc.suburb)} (${loc.postcode})`,
-    loc.electorate ? `Electorate: ${formatSuburbLabel(loc.electorate)}` : "",
-    `NSW-wide: ${fundedNurses.toLocaleString("en-AU")} nurses, ${fundedTeachers.toLocaleString("en-AU")} teachers`,
-    `Local estimate: ${localFundedNurses.toLocaleString("en-AU")} nurses, ${localFundedTeachers.toLocaleString("en-AU")} teachers`,
+    primaryLine,
+    `Electorate: ${formatSuburbLabel(loc.electorate || "Unknown")}`,
     `Budget split: ${nurseBudgetShare}% nurses / ${100 - nurseBudgetShare}% teachers`,
-    `Pay rises: nurses ${payRiseNurses}%, teachers ${payRiseTeachers}%`
+    `Teacher pay rise: ${payRiseTeachers}%`
   ].filter(Boolean);
   lastImpactShareText = shareParts.join("\n");
 
   let output = `${displayLine}<br><br>
-
-<strong>NSW-wide impact</strong><br>
-✔ ${fundedNurses.toLocaleString("en-AU")} nurses<br>
-${payRiseNurses > 0 ? `✔ ${payRiseNurses}% pay rise for all nurses<br>` : ""}
-✔ ${fundedTeachers.toLocaleString("en-AU")} teachers<br>
-${payRiseTeachers > 0 ? `✔ ${payRiseTeachers}% pay rise for all teachers<br>` : ""}<br>
-
-<strong>Estimated local area impact (${formatSuburbLabel(loc.electorate || "your electorate")})</strong><br>
-≈ ${localFundedNurses.toLocaleString("en-AU")} nurses<br>
-≈ ${localFundedTeachers.toLocaleString("en-AU")} teachers<br><br>
-
-<strong>You are allocating a fixed $500M budget.</strong><br>
-${nurseBudgetShare}% of funds to nurses; ${100 - nurseBudgetShare}% to teachers. Increasing pay in either pool reduces headcount there.
-${comparisonLine}
-
-<div style="font-size:12px; opacity:0.7; margin-top:10px;">
-  NSW totals use a fixed $500M model. Local estimate apportions that model by electorate share in the postcode dataset.
+<div style="font-size:1.15rem; font-weight:700; color:var(--ink);">
+  ${primaryLine}
+</div>
+<div style="font-size:0.9rem; opacity:0.8; margin-top:8px;">
+  Electorate: ${formatSuburbLabel(loc.electorate || "Unknown")}
+</div>
+<div style="font-size:0.82rem; opacity:0.72; margin-top:10px;">
+  NSW model: ${fundedNurses.toLocaleString("en-AU")} nurses, ${fundedTeachers.toLocaleString("en-AU")} teachers.
 </div>`;
 
   const footer = `

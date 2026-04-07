@@ -573,6 +573,7 @@ function calculateImpactForRegion(region, nurseSplit) {
 }
 
 function ensurePersuasiveImpactUI() {
+  try {
   var inputEl = document.getElementById('postcodeInput') || document.getElementById('locationInput');
   if (!inputEl) return;
 
@@ -626,12 +627,16 @@ function ensurePersuasiveImpactUI() {
     });
     slider.dataset.wired = "1";
   }
+  } catch (err) {
+    console.warn("Persuasive UI setup failed, keeping core calculator active:", err);
+  }
 }
 
 async function updateImpact() {
-  var inputEl = document.getElementById('postcodeInput') || document.getElementById('locationInput');
-  var outputEl = document.getElementById('output');
-  if (!inputEl || !outputEl) return;
+  try {
+    var inputEl = document.getElementById('postcodeInput') || document.getElementById('locationInput');
+    var outputEl = document.getElementById('output');
+    if (!inputEl || !outputEl) return;
 
   if (!regionDataLoaded) {
     try {
@@ -668,7 +673,7 @@ async function updateImpact() {
   var nurseSplit = slider ? parseInt(slider.value, 10) / 100 : 0.5;
   var result = calculateImpactForRegion(region, nurseSplit);
 
-  outputEl.innerHTML = `
+    outputEl.innerHTML = `
     <div style="margin-top:20px; line-height:1.6;">
       <div style="font-size:18px; font-weight:bold;">
         ${region}
@@ -693,6 +698,9 @@ async function updateImpact() {
       </div>
     </div>
   `;
+  } catch (err3) {
+    console.warn("Persuasive output update failed, keeping core calculator active:", err3);
+  }
 }
 
 function updateSplit(value) {
@@ -830,6 +838,7 @@ onDomReady(function () {
   wireLocalImpactControls();
   ensurePersuasiveImpactUI();
   void updateImpact();
+  void showImpact();
 
   loadPostcodes().catch(function (e) {
     console.error("NSW postcodes preload failed:", e);

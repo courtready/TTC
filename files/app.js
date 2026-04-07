@@ -1,6 +1,7 @@
 let payRiseNurses = 0;
 let payRiseTeachers = 0;
 let nurseBudgetShare = 50; // % of $500M to nurses; remainder to teachers
+let lastImpactShareText = "";
 
 let postcodeData = [];
 let dataLoaded = false;
@@ -271,6 +272,16 @@ async function showImpact() {
       ? `<br><br>Compared to 0% pay in each pool: ${comparisonParts.join("; ")}.`
       : "";
 
+  var shareParts = [
+    `${formatSuburbLabel(loc.suburb)} (${loc.postcode})`,
+    loc.electorate ? `Electorate: ${formatSuburbLabel(loc.electorate)}` : "",
+    `NSW-wide: ${fundedNurses.toLocaleString("en-AU")} nurses, ${fundedTeachers.toLocaleString("en-AU")} teachers`,
+    `Local estimate: ${localFundedNurses.toLocaleString("en-AU")} nurses, ${localFundedTeachers.toLocaleString("en-AU")} teachers`,
+    `Budget split: ${nurseBudgetShare}% nurses / ${100 - nurseBudgetShare}% teachers`,
+    `Pay rises: nurses ${payRiseNurses}%, teachers ${payRiseTeachers}%`
+  ].filter(Boolean);
+  lastImpactShareText = shareParts.join("\n");
+
   let output = `${displayLine}<br><br>
 
 <strong>NSW-wide impact</strong><br>
@@ -500,16 +511,18 @@ function supportPolicy() {
 }
 
 function shareImpact() {
-  const text = document.getElementById("impactResult").innerText;
+  const text = (lastImpactShareText || "").trim();
+  const payloadText = text || "See your local impact result on Tax the Church.";
+  const payload = `${payloadText}\n${window.location.href}`;
 
   if (navigator.share) {
     navigator.share({
       title: "Local Impact",
-      text: text,
+      text: payloadText,
       url: window.location.href
     });
   } else {
-    navigator.clipboard.writeText(text);
-    alert("Result copied to clipboard");
+    navigator.clipboard.writeText(payload);
+    alert("Result + link copied to clipboard");
   }
 }

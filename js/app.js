@@ -429,12 +429,12 @@ async function showImpact() {
   // Region output: real hospitals + school system impact.
   var regionOutputEl = document.getElementById("region-output");
   if (regionSelectEl && regionOutputEl) {
-    var region = regionSelectEl.value;
-    var data = REGION_DATA[region];
+    var selectedRegion = regionSelectEl.value;
+    var data = REGION_DATA[selectedRegion];
     if (data) {
-      var regionPop = lhdPopulation[region] || data.population;
-      var regionShare = regionPop / NSW_POPULATION;
-      var regionTotalWorkers = Math.floor(MAX_WORKERS * regionShare);
+      var selectedRegionPop = lhdPopulation[selectedRegion] || data.population;
+      var selectedRegionShare = selectedRegionPop / NSW_POPULATION;
+      var regionTotalWorkers = Math.floor(MAX_WORKERS * selectedRegionShare);
 
       var nurseRatio = nurseSplit / 100;
       var teacherRatio = teacherSplit / 100;
@@ -442,13 +442,13 @@ async function showImpact() {
       var regionNurses = Math.floor(regionTotalWorkers * nurseRatio);
       var regionTeachers = Math.floor(regionTotalWorkers * teacherRatio);
 
-      var regionNursePerPeople = regionNurses > 0 ? Math.floor(regionPop / regionNurses) : 0;
-      var regionTeacherPerPeople = regionTeachers > 0 ? Math.floor(regionPop / regionTeachers) : 0;
+      var regionNursePerPeople = regionNurses > 0 ? Math.floor(selectedRegionPop / regionNurses) : 0;
+      var regionTeacherPerPeople = regionTeachers > 0 ? Math.floor(selectedRegionPop / regionTeachers) : 0;
 
       var hospitalList = data.hospitals.join(", ");
 
       regionOutputEl.innerHTML = `
-  🏥 <strong>${region}</strong><br><br>
+  🏥 <strong>${selectedRegion}</strong><br><br>
 
   <strong>Hospitals:</strong><br>
   ${hospitalList}

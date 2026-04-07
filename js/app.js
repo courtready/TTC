@@ -725,10 +725,13 @@ function updatePayTeachers(value) {
 }
 
 window.calculateImpact = function () {
-  void showImpact().catch(function () {
-    var resultEl = document.getElementById('result') || document.getElementById('impactResult');
-    if (resultEl) {
-      resultEl.innerHTML = "<p>Something went wrong. Please refresh and try again.</p>";
+  Promise.allSettled([showImpact(), updateImpact()]).then(function (results) {
+    var allFailed = results.every(function (r) { return r.status === "rejected"; });
+    if (allFailed) {
+      var resultEl = document.getElementById('result') || document.getElementById('impactResult');
+      if (resultEl) {
+        resultEl.innerHTML = "<p>Something went wrong. Please refresh and try again.</p>";
+      }
     }
   });
 };
@@ -741,6 +744,7 @@ function wireLocalImpactControls() {
   if (showBtn) {
     showBtn.addEventListener("click", function () {
       void showImpact();
+      void updateImpact();
     });
   }
   var split = document.getElementById("splitSlider");

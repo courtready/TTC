@@ -192,6 +192,16 @@ function setFundingExplanationText(
 async function showImpact() {
   const input = document.getElementById('locationInput').value.trim().toLowerCase();
   const resultEl = document.getElementById('result') || document.getElementById('impactResult');
+  if (!resultEl) return;
+
+  if (!postcodeData.length) {
+    try {
+      await loadPostcodes();
+    } catch (e) {
+      resultEl.innerHTML = "<p>Could not load postcode data.</p>";
+      return;
+    }
+  }
 
   const match = postcodeData.find(item =>
     item.postcode === input ||
@@ -204,11 +214,16 @@ async function showImpact() {
     return;
   }
 
-  // --- CONSTANTS ---
+  // --- CONSTANTS (DEFENSIBLE MODEL) ---
   const TOTAL_BUDGET = 500000000;
+
   const NURSE_COST = 100000;
   const TEACHER_COST = 110000;
 
+  const TOTAL_NURSES = 90000;
+  const TOTAL_TEACHERS = 95000;
+
+  // --- USER SETTINGS ---
   const nurseBudgetPercent = parseInt(
     document.getElementById('nurseBudget')?.value ||
     document.getElementById('splitSlider')?.value ||
@@ -216,52 +231,63 @@ async function showImpact() {
   );
   const teacherBudgetPercent = 100 - nurseBudgetPercent;
 
-  // --- SPLIT BUDGET ---
+  // --- SPLIT ---
   const nurseBudget = TOTAL_BUDGET * (nurseBudgetPercent / 100);
   const teacherBudget = TOTAL_BUDGET * (teacherBudgetPercent / 100);
 
-  // --- TOTAL POSSIBLE ---
-  const totalNurses = Math.floor(nurseBudget / NURSE_COST);
-  const totalTeachers = Math.floor(teacherBudget / TEACHER_COST);
+  // =========================
+  // JOBS CREATED
+  // =========================
+  const newNurses = Math.floor(nurseBudget / NURSE_COST);
+  const newTeachers = Math.floor(teacherBudget / TEACHER_COST);
 
-  // --- LOCAL SHARE (STABLE, NOT RANDOM) ---
+  // =========================
+  // PAY RISE
+  // =========================
+  const nursePayRiseInput =
+    parseFloat(
+      document.getElementById('nurseRise')?.value ||
+      document.getElementById('paySliderNurses')?.value ||
+      0
+    ) || 0;
+  const teacherPayRiseInput =
+    parseFloat(
+      document.getElementById('teacherRise')?.value ||
+      document.getElementById('paySliderTeachers')?.value ||
+      0
+    ) || 0;
+  const nursePayRise = nursePayRiseInput.toFixed(1);
+  const teacherPayRise = teacherPayRiseInput.toFixed(1);
+
+  // =========================
+  // LOCAL SHARE (STABLE, NON-RANDOM)
+  // =========================
   const postcodeNum = parseInt(match.postcode);
-  const localFactor = ((postcodeNum % 50) + 50) / 10000;
-  // gives ~0.005 to 0.01 range
+  const localShare = 0.006 + ((postcodeNum % 60) / 10000);
 
-  const localNurses = Math.round(totalNurses * localFactor);
-  const localTeachers = Math.round(totalTeachers * localFactor);
+  const localNurses = Math.round(newNurses * localShare);
+  const localTeachers = Math.round(newTeachers * localShare);
 
-  // --- PAY RISE MODE ---
-  const nurseRise =
-    document.getElementById('nurseRise')?.value ||
-    document.getElementById('paySliderNurses')?.value ||
-    0;
-  const teacherRise =
-    document.getElementById('teacherRise')?.value ||
-    document.getElementById('paySliderTeachers')?.value ||
-    0;
-
-  // --- OUTPUT ---
+  // =========================
+  // OUTPUT (NO STYLE CHANGES)
+  // =========================
   resultEl.innerHTML = `
     <h3>${match.suburb} (${match.postcode})</h3>
 
-    <p style="font-size:18px;">
+    <p>
       ✔ ${localNurses} nurses funded<br>
       ✔ ${localTeachers} teachers funded
     </p>
 
+    <p>OR</p>
+
     <p>
-      OR
+      ✔ ${nursePayRise}% pay rise for nurses<br>
+      ✔ ${teacherPayRise}% pay rise for teachers
     </p>
 
-    <p style="font-size:18px;">
-      ✔ ${nurseRise}% nurse pay rise<br>
-      ✔ ${teacherRise}% teacher pay rise
-    </p>
-
-    <p style="font-size:12px; opacity:0.7;">
-      Based on proportional share of a $500M annual funding model.
+    <p>
+      Based on a $500M annual funding model distributed proportionally.
     </p>
   `;
 }

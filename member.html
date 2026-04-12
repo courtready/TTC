@@ -171,109 +171,73 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-const supabaseUrl = "https://umouqdubdlqaofqukawa.supabase.co";
-const supabaseKey = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+document.addEventListener("DOMContentLoaded", () => {
+  const supabaseUrl = "https://umouqdubdlqaofqukawa.supabase.co";
+  const supabaseKey = "YOUR_ANON_KEY";
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-const form = document.getElementById("form");
+  const form = document.getElementById("form");
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const button = form.querySelector('button[type="submit"]');
+    const button = form.querySelector('button[type="submit"]');
 
-  const firstName = document.getElementById("firstName").value.trim();
-  const email = document.getElementById("email").value.trim().toLowerCase();
-  const suburb = document.getElementById("suburb").value.trim();
+    const firstName = document.getElementById("firstName").value.trim();
+    const email = document.getElementById("email").value.trim().toLowerCase();
+    const suburb = document.getElementById("suburb").value.trim();
 
-  // validation
-  if (!firstName || !email) {
-    alert("Please fill in required fields");
-    return;
-  }
+    const tokenEl = document.querySelector('[name="cf-turnstile-response"]');
+    const token = tokenEl ? tokenEl.value : null;
 
-  // rate limit (10s)
-  const now = Date.now();
-  const lastSubmit = Number(localStorage.getItem("last_submit_time"));
-  if (lastSubmit && now - lastSubmit < 10000) {
-    alert("Please wait a few seconds before trying again.");
-    return;
-  }
-
-  const tokenEl = document.querySelector('[name="cf-turnstile-response"]');
-  const token = tokenEl ? tokenEl.value : null;
-
-  if (!token) {
-    alert("Please verify you're human");
-    return;
-  }
-
-  // THEN lock button
-  button.disabled = true;
-  button.innerText = "Joining...";
-
-  const verifyRes = await fetch("https://umouqdubdlqaofqukawa.functions.supabase.co/verify-turnstile", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ token })
-  });
-
-  const verifyData = await verifyRes.json();
-
-  if (!verifyData.success) {
-    button.disabled = false;
-    button.innerText = "Join the Movement";
-    alert("Verification failed. Please try again.");
-    return;
-  }
-
-  let error;
-
-  try {
-    const response = await supabaseClient
-      .from("members")
-      .insert([{
-        first_name: firstName,
-        email,
-        suburb,
-        source: "taxthe.church"
-      }]);
-
-    error = response.error;
-  } catch (err) {
-    error = err;
-  }
-
-  if (error) {
-    // unlock button on any failure
-    button.disabled = false;
-    button.innerText = "Join the Movement";
-
-    if (error.code === "23505") {
-      alert("You're already on the list 👍");
-    } else {
-      alert("Something went wrong. Try again.");
-      console.error(error);
+    if (!token) {
+      alert("Please verify you're human");
+      return;
     }
-    return;
-  }
 
-  // only set rate limit timestamp on success
-  localStorage.setItem("last_submit_time", Date.now());
+    button.disabled = true;
+    button.innerText = "Joining...";
 
-  if (window.turnstile) {
-    window.turnstile.reset();
-  }
+    try {
+      const verifyRes = await fetch("https://umouqdubdlqaofqukawa.functions.supabase.co/verify-turnstile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
 
-  // success UI
-  form.innerHTML = `
-    <div style="text-align:center; padding:40px;">
-      <h2>You're in 👍</h2>
-      <p>Thanks for joining the movement.</p>
-    </div>
-  `;
+      const verifyData = await verifyRes.json();
+
+      if (!verifyData.success) {
+        button.disabled = false;
+        button.innerText = "Join the Movement";
+        alert("Verification failed. Please try again.");
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from("members")
+        .insert([{ first_name: firstName, email, suburb, source: "taxthe.church" }]);
+
+      if (error) {
+        button.disabled = false;
+        button.innerText = "Join the Movement";
+        alert("Something went wrong.");
+        return;
+      }
+
+      form.innerHTML = `
+        <div style="text-align:center; padding:40px;">
+          <h2>You're in 👍</h2>
+          <p>Thanks for joining the movement.</p>
+        </div>
+      `;
+
+    } catch (err) {
+      button.disabled = false;
+      button.innerText = "Join the Movement";
+      alert("Network error. Try again.");
+    }
+  });
 });
   </script>
 </body>

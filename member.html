@@ -205,12 +205,13 @@ form.addEventListener("submit", async (e) => {
   button.disabled = true;
   button.innerText = "Joining...";
 
-  const token = document.querySelector('[name="cf-turnstile-response"]').value;
+  const tokenEl = document.querySelector('[name="cf-turnstile-response"]');
+  const token = tokenEl ? tokenEl.value : null;
 
   if (!token) {
-    alert("Please verify you're human");
     button.disabled = false;
     button.innerText = "Join the Movement";
+    alert("Please verify you're human");
     return;
   }
 
@@ -247,6 +248,10 @@ form.addEventListener("submit", async (e) => {
 
   // only set rate limit timestamp on success
   localStorage.setItem("last_submit_time", Date.now());
+
+  if (window.turnstile) {
+    window.turnstile.reset();
+  }
 
   // success UI
   form.innerHTML = `

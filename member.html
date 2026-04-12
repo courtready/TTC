@@ -155,21 +155,12 @@
       <h1>Join the <em>Movement.</em></h1>
       <p class="sub">Help us put fair taxation on the NSW agenda before the 2027 election.<br>Get updates, data, and real policy — not spin.</p>
 
-      <form class="member-form" id="memberForm">
+      <form class="member-form" id="form">
         <input type="text" id="firstName" placeholder="First name" required />
         <input type="email" id="email" placeholder="Email address" required />
-        <input type="text" id="suburb" name="suburb" placeholder="Suburb or postcode" required autocomplete="address-level2" />
-        <button type="submit" id="submitBtn">Join the Movement</button>
+        <input type="text" id="suburb" placeholder="Suburb or postcode" required autocomplete="address-level2" />
+        <button type="submit">Join the Movement</button>
       </form>
-
-      <div class="member-success" id="successMsg">
-        <h3>You're in. ✊</h3>
-        <p>Thanks for joining. We'll be in touch with updates, data, and real policy — not spin.</p>
-      </div>
-
-      <div class="member-error" id="errorMsg">
-        Something went wrong. Please try again.
-      </div>
 
       <p class="member-note">No spam. Only campaign updates. Unsubscribe anytime.</p>
       <a href="/" class="back-link">← Back to taxthe.church</a>
@@ -181,73 +172,68 @@
     const SUPABASE_URL = 'https://umouqdubdlqaofqukawa.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
+  <script>
+const form = document.getElementById("form");
 
-    document.getElementById('memberForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      const successMsg = document.getElementById('successMsg');
-      const errorMsg = document.getElementById('errorMsg');
-      const form = document.getElementById('memberForm');
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      btn.disabled = true;
-      btn.textContent = 'Joining...';
-      errorMsg.style.display = 'none';
+  const firstName = document.getElementById("firstName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const suburb = document.getElementById("suburb").value.trim();
 
-      const firstName = document.getElementById('firstName').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const suburb = document.getElementById('suburb').value.trim();
+  if (!firstName || !email) {
+    alert("Please fill in required fields");
+    return;
+  }
 
-      if (!suburb) {
-        errorMsg.textContent = 'Please enter your suburb or postcode.';
-        errorMsg.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Join the Movement';
-        return;
-      }
+  // simple rate limit (10s)
+  const now = Date.now();
+  const lastSubmit = Number(localStorage.getItem("last_submit_time"));
+  if (lastSubmit && now - lastSubmit < 10000) {
+    alert("Please wait a few seconds before trying again.");
+    return;
+  }
+  localStorage.setItem("last_submit_time", now);
 
-      // Simple rate limit: 1 submission per 10 seconds
-      const now = Date.now();
-      const lastSubmit = localStorage.getItem('last_submit_time');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Joining...";
+  }
 
-      if (lastSubmit && now - Number(lastSubmit) < 10000) {
-        alert('Please wait a few seconds before trying again.');
-        btn.disabled = false;
-        btn.textContent = 'Join the Movement';
-        return;
-      }
+  const { error } = await supabase
+    .from("members")
+    .insert([{
+      first_name: firstName,
+      email,
+      suburb,
+      source: "taxthe.church"
+    }]);
 
-      // update timestamp
-      localStorage.setItem('last_submit_time', now);
+  if (error) {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Join the Movement";
+    }
+    if (error.code === "23505") {
+      alert("You're already on the list 👍");
+    } else {
+      alert("Something went wrong. Try again.");
+      console.error(error);
+    }
+    return;
+  }
 
-      const { error } = await supabase
-        .from('members')
-        .insert([{
-          first_name: firstName,
-          email,
-          suburb,
-          source: 'taxthe.church'
-        }]);
-
-      if (error) {
-        btn.disabled = false;
-        btn.textContent = 'Join the Movement';
-        const duplicate =
-          error.code === '23505' ||
-          (error.message && error.message.includes('duplicate key'));
-        if (duplicate) {
-          alert("You're already on the list 👍");
-        } else {
-          alert('Something went wrong. Try again.');
-          console.error(error);
-        }
-        return;
-      }
-
-      form.style.display = 'none';
-      successMsg.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Join the Movement';
-    });
+  // success UI
+  form.innerHTML = `
+    <div style="text-align:center; padding:40px;">
+      <h2>You're in 👍</h2>
+      <p>Thanks for joining the movement.</p>
+    </div>
+  `;
+});
   </script>
 </body>
 </html>

@@ -213,6 +213,23 @@ form.addEventListener("submit", async (e) => {
   button.disabled = true;
   button.innerText = "Joining...";
 
+  const verifyRes = await fetch("https://umouqdubdlqaofqukawa.functions.supabase.co/verify-turnstile", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ token })
+  });
+
+  const verifyData = await verifyRes.json();
+
+  if (!verifyData.success) {
+    button.disabled = false;
+    button.innerText = "Join the Movement";
+    alert("Verification failed. Please try again.");
+    return;
+  }
+
   let error;
 
   try {

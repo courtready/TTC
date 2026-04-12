@@ -169,13 +169,12 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    const SUPABASE_URL = 'https://umouqdubdlqaofqukawa.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  </script>
-  <script>
+const supabaseUrl = "https://umouqdubdlqaofqukawa.supabase.co";
+const supabaseKey = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
 const form = document.getElementById("form");
 
 form.addEventListener("submit", async (e) => {

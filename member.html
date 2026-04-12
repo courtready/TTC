@@ -179,29 +179,31 @@ const form = document.getElementById("form");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const button = form.querySelector('button[type="submit"]');
+
   const firstName = document.getElementById("firstName").value.trim();
-  const email = document.getElementById("email").value.trim();
+  const email = document.getElementById("email").value.trim().toLowerCase();
   const suburb = document.getElementById("suburb").value.trim();
 
+  // validation
   if (!firstName || !email) {
     alert("Please fill in required fields");
     return;
   }
 
-  // simple rate limit (10s)
+  // rate limit (10s)
   const now = Date.now();
   const lastSubmit = Number(localStorage.getItem("last_submit_time"));
   if (lastSubmit && now - lastSubmit < 10000) {
     alert("Please wait a few seconds before trying again.");
     return;
   }
-  localStorage.setItem("last_submit_time", now);
 
-  const submitBtn = form.querySelector('button[type="submit"]');
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Joining...";
-  }
+  // lock button BEFORE async call
+  button.disabled = true;
+  button.innerText = "Joining...";
+
+  localStorage.setItem("last_submit_time", now);
 
   const { error } = await supabase
     .from("members")
@@ -213,10 +215,10 @@ form.addEventListener("submit", async (e) => {
     }]);
 
   if (error) {
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Join the Movement";
-    }
+    // unlock button on error
+    button.disabled = false;
+    button.innerText = "Join the Movement";
+
     if (error.code === "23505") {
       alert("You're already on the list 👍");
     } else {

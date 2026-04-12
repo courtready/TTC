@@ -11,6 +11,7 @@
   <meta name="description" content="Join the movement. Help us put fair taxation on the NSW agenda before the 2027 election.">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <style>
     .member-wrap {
       min-height: 100vh;
@@ -159,6 +160,7 @@
         <input type="text" id="firstName" placeholder="First name" required />
         <input type="email" id="email" placeholder="Email address" required />
         <input type="text" id="suburb" placeholder="Suburb or postcode" required autocomplete="address-level2" />
+        <div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY"></div>
         <button type="submit">Join the Movement</button>
       </form>
 
@@ -202,6 +204,15 @@ form.addEventListener("submit", async (e) => {
   // lock button BEFORE async call
   button.disabled = true;
   button.innerText = "Joining...";
+
+  const token = document.querySelector('[name="cf-turnstile-response"]').value;
+
+  if (!token) {
+    alert("Please verify you're human");
+    button.disabled = false;
+    button.innerText = "Join the Movement";
+    return;
+  }
 
   let error;
 

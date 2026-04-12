@@ -205,24 +205,48 @@
         return;
       }
 
-      const { error } = await supabase
-        .from('members')
-        .insert([{ first_name: firstName, email, suburb, joined_at: new Date().toISOString() }]);
+      // Simple rate limit: 1 submission per 10 seconds
+      const now = Date.now();
+      const lastSubmit = localStorage.getItem('last_submit_time');
 
-      if (error) {
-        console.error(error);
-        errorMsg.style.display = 'block';
-        if (error.code === '23505') {
-          errorMsg.textContent = 'That email is already registered.';
-        } else {
-          errorMsg.textContent = 'Something went wrong. Please try again.';
-        }
+      if (lastSubmit && now - Number(lastSubmit) < 10000) {
+        alert('Please wait a few seconds before trying again.');
         btn.disabled = false;
         btn.textContent = 'Join the Movement';
-      } else {
-        form.style.display = 'none';
-        successMsg.style.display = 'block';
+        return;
       }
+
+      // update timestamp
+      localStorage.setItem('last_submit_time', now);
+
+      const { error } = await supabase
+        .from('members')
+        .insert([{
+          first_name: firstName,
+          email,
+          suburb,
+          source: 'taxthe.church'
+        }]);
+
+      if (error) {
+        btn.disabled = false;
+        btn.textContent = 'Join the Movement';
+        const duplicate =
+          error.code === '23505' ||
+          (error.message && error.message.includes('duplicate key'));
+        if (duplicate) {
+          alert("You're already on the list 👍");
+        } else {
+          alert('Something went wrong. Try again.');
+          console.error(error);
+        }
+        return;
+      }
+
+      form.style.display = 'none';
+      successMsg.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Join the Movement';
     });
   </script>
 </body>

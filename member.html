@@ -203,19 +203,25 @@ form.addEventListener("submit", async (e) => {
   button.disabled = true;
   button.innerText = "Joining...";
 
-  localStorage.setItem("last_submit_time", now);
+  let error;
 
-  const { error } = await supabase
-    .from("members")
-    .insert([{
-      first_name: firstName,
-      email,
-      suburb,
-      source: "taxthe.church"
-    }]);
+  try {
+    const response = await supabase
+      .from("members")
+      .insert([{
+        first_name: firstName,
+        email,
+        suburb,
+        source: "taxthe.church"
+      }]);
+
+    error = response.error;
+  } catch (err) {
+    error = err;
+  }
 
   if (error) {
-    // unlock button on error
+    // unlock button on any failure
     button.disabled = false;
     button.innerText = "Join the Movement";
 
@@ -227,6 +233,9 @@ form.addEventListener("submit", async (e) => {
     }
     return;
   }
+
+  // only set rate limit timestamp on success
+  localStorage.setItem("last_submit_time", Date.now());
 
   // success UI
   form.innerHTML = `

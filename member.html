@@ -201,19 +201,17 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // lock button BEFORE async call
-  button.disabled = true;
-  button.innerText = "Joining...";
-
   const tokenEl = document.querySelector('[name="cf-turnstile-response"]');
   const token = tokenEl ? tokenEl.value : null;
 
   if (!token) {
-    button.disabled = false;
-    button.innerText = "Join the Movement";
     alert("Please verify you're human");
     return;
   }
+
+  // THEN lock button
+  button.disabled = true;
+  button.innerText = "Joining...";
 
   let error;
 

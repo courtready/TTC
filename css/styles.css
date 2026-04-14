@@ -515,6 +515,15 @@ footer {
   margin-top: 1rem; margin-bottom: 0;
 }
 .authorised { font-size: 0.78rem; color: var(--ink2); margin-top: 1.5rem; }
+.acknowledgement {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: rgba(245,242,255,0.62);
+  margin-top: 1rem;
+  max-width: 56ch;
+  margin-left: auto;
+  margin-right: auto;
+}
 .cta-block { margin: 1.5rem 0; }
 .cta-block h2 { font-size: 28px; margin-bottom: 10px; }
 .cta-block p { color: #bbb; margin-bottom: 20px; }

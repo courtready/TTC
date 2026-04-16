@@ -157,85 +157,134 @@
       <p class="sub">Help us put fair taxation on the NSW agenda before the 2027 election.<br>Get updates, data, and real policy — not spin.</p>
 
       <form class="member-form" id="form">
-        <input type="text" id="firstName" placeholder="First name" required />
+        <input type="text" id="first_name" placeholder="First name" required />
         <input type="email" id="email" placeholder="Email address" required />
-        <input type="text" id="suburb" placeholder="Suburb or postcode" required autocomplete="address-level2" />
+        <input type="text" id="postcode" placeholder="Suburb or postcode" required autocomplete="address-level2" />
         <div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY"></div>
         <button type="submit">Join the Movement</button>
       </form>
+      <div class="member-success" id="successMsg">
+        <h3>You're in. ✊</h3>
+        <p>Thanks for joining. We will keep you posted.</p>
+      </div>
 
       <p class="member-note">No spam. Only campaign updates. Unsubscribe anytime.</p>
       <a href="/" class="back-link">← Back to taxthe.church</a>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const projectUrl = "https://umouqdubdlqaofqukawa.supabase.co";
-  const anonKey = "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV";
-  const supabaseClient = window.supabase.createClient(projectUrl, anonKey);
 
-  const form = document.getElementById("form");
+  if (!window.supabase) {
+    console.error("Supabase not loaded");
+    alert("Supabase failed to load");
+    return;
+  }
+
+  const supabaseClient = window.supabase.createClient(
+    "https://umouqdubdlqaofqukawa.supabase.co",
+    "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV"
+  );
+
+  const form = document.querySelector("form");
+
+  if (!form) {
+    console.error("Form not found");
+    return;
+  }
+
+  console.log("Form loaded");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const button = form.querySelector('button[type="submit"]');
+    console.log("Submitting form");
+    const submitButton = form.querySelector("button[type='submit']");
+    const successMsg = document.getElementById("successMsg");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const firstName = document.getElementById("firstName").value.trim();
-    const email = document.getElementById("email").value.trim().toLowerCase();
-    const suburb = document.getElementById("suburb").value.trim();
+    const nameInput = document.getElementById("first_name");
+    const emailInput = document.getElementById("email");
+    const postcodeInput = document.getElementById("postcode");
 
-    const tokenEl = document.querySelector('[name="cf-turnstile-response"]');
-    const token = tokenEl ? tokenEl.value : null;
-
-    if (!token) {
-      alert("Please verify you're human");
+    if (!nameInput || !emailInput || !postcodeInput) {
+      console.error("Inputs not found");
+      alert("Form fields missing");
       return;
     }
 
-    button.disabled = true;
-    button.innerText = "Joining...";
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim().toLowerCase();
+    const postcode = postcodeInput.value.trim();
 
+    if (!name || !email || !postcode) {
+      alert("Please fill all fields");
+      return;
+    }
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
+    const turnstileEl = document.querySelector(".cf-turnstile");
+    const siteKey = (turnstileEl?.getAttribute("data-sitekey") || "").trim();
+    const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const turnstileEnabled = !isLocal && siteKey && siteKey !== "YOUR_SITE_KEY";
+
+    if (turnstileEnabled) {
+      const tokenEl = document.querySelector('[name="cf-turnstile-response"]');
+      const token = tokenEl ? tokenEl.value : "";
+      if (!token) {
+        alert("Please verify you're human");
+        return;
+      }
+    }
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "Joining...";
+    }
+
+    let data;
+    let error;
     try {
-      const verifyRes = await fetch("https://umouqdubdlqaofqukawa.functions.supabase.co/verify-turnstile", {
+      const response = await supabaseClient
+        .from("members")
+        .insert([
+          { first_name: name, email: email, postcode: postcode }
+        ]);
+      data = response.data;
+      error = response.error;
+    } catch (err) {
+      error = err;
+    }
+
+    if (error) {
+      console.error("Insert error:", error);
+      alert("Error: " + error.message);
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Join the Movement";
+      }
+    } else {
+      console.log("Success:", data);
+      form.reset();
+      if (submitButton) {
+        submitButton.textContent = "Joined";
+      }
+      if (successMsg) {
+        successMsg.style.display = "block";
+      }
+
+      fetch("https://umouqdubdlqaofqukawa.functions.supabase.co/signup-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token })
+        body: JSON.stringify({ email, first_name: name })
+      }).catch((emailErr) => {
+        console.warn("signup-email hook failed:", emailErr);
       });
-
-      const verifyData = await verifyRes.json();
-
-      if (!verifyData.success) {
-        button.disabled = false;
-        button.innerText = "Join the Movement";
-        alert("Verification failed. Please try again.");
-        return;
-      }
-
-      const { error } = await supabaseClient
-        .from("members")
-        .insert([{ first_name: firstName, email, suburb, source: "taxthe.church" }]);
-
-      if (error) {
-        button.disabled = false;
-        button.innerText = "Join the Movement";
-        alert("Something went wrong.");
-        return;
-      }
-
-      form.innerHTML = `
-        <div style="text-align:center; padding:40px;">
-          <h2>You're in 👍</h2>
-          <p>Thanks for joining the movement.</p>
-        </div>
-      `;
-
-    } catch (err) {
-      button.disabled = false;
-      button.innerText = "Join the Movement";
-      alert("Network error. Try again.");
     }
   });
 });

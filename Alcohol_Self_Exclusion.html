@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Self-Exclusion Generator</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      color: #000;
+      background: #fff;
+      font-family: "Times New Roman", serif;
+      font-size: 12pt;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    #self-exclusion-tool {
+      max-width: 210mm;
+      margin: 0 auto;
+    }
+
+    .controls {
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .controls-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+      padding-right: 8px;
+      padding-left: 20px;
+    }
+
+    button {
+      margin-right: 8px;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border: 1px solid #000;
+      background: #fff;
+      color: #000;
+      cursor: pointer;
+    }
+
+    #generate-btn,
+    #print-btn {
+      padding: 14px 22px;
+      font-size: 1.35em;
+      font-weight: 700;
+      line-height: 1.15;
+      min-width: 240px;
+      box-sizing: border-box;
+    }
+
+    #generate-btn {
+      border: 2px solid #0b3d91;
+      color: #0b3d91;
+      background: #eaf2ff;
+    }
+
+    #print-btn {
+      border: 2px solid #1b5e20;
+      color: #1b5e20;
+      background: #e9f6ea;
+    }
+
+    .controls-note {
+      font-size: 30pt;
+      line-height: 1.1;
+      margin-left: 1cm;
+    }
+
+    .copy-count-row {
+      margin-bottom: 8px;
+      font-size: 18pt;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #0b3d91;
+      background: #eaf2ff;
+      border: 2px solid #0b3d91;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .copy-count-row select {
+      font-size: 18pt;
+      font-weight: 700;
+      padding: 2px 8px;
+      border: 2px solid #0b3d91;
+      background: #fff;
+      color: #0b3d91;
+      min-width: 84px;
+    }
+
+    #instructions-panel {
+      position: fixed;
+      left: 16px;
+      top: 16px;
+      width: 380px;
+      border: 1px solid #000;
+      padding: 10px 12px;
+      background: #fff;
+      font-size: 15pt;
+      line-height: 1.35;
+      z-index: 5;
+    }
+
+    #instructions-panel h3 {
+      margin: 0 0 6px;
+      font-size: 16.5pt;
+    }
+
+    #instructions-panel ol {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .venue-label {
+      font-size: 10pt;
+      margin: 3px 0 8px;
+      display: none;
+    }
+
+    .page {
+      page-break-after: auto;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 20mm;
+      border: 1px solid #000;
+      margin-bottom: 12px;
+    }
+
+    .page.page-end {
+      page-break-after: always;
+      break-after: page;
+    }
+
+    .page h2 {
+      margin: 0 0 4px;
+      font-size: 14pt;
+      text-align: center;
+      letter-spacing: 0.3px;
+    }
+
+    .subtitle {
+      margin: 0 0 14px;
+      font-size: 10.5pt;
+      text-align: center;
+    }
+
+    .section-title {
+      margin: 10px 0 5px;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+
+    .form-row {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+
+    .form-row label {
+      width: 170px;
+    }
+
+    .nsw-left .form-row label {
+      width: 145px;
+    }
+
+    .support-row label {
+      width: 145px;
+    }
+
+    .venue-row label {
+      width: 150px;
+    }
+
+    .line {
+      flex: 1;
+      border-bottom: 1px dotted #000;
+      min-height: 1.2em;
+    }
+
+    .line span {
+      display: inline-block;
+      min-height: 1.1em;
+    }
+
+    ol {
+      margin-top: 5px;
+      margin-bottom: 10px;
+      padding-left: 20px;
+    }
+
+    .declaration {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .signatures {
+      margin-top: 10px;
+    }
+
+    .sig-row {
+      margin-bottom: 8px;
+    }
+
+    details {
+      margin-bottom: 8px;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      font-size: 10pt;
+    }
+
+    .nsw-table {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+    }
+
+    .nsw-left {
+      width: 70%;
+      vertical-align: top;
+      padding-right: 8px;
+    }
+
+    .nsw-photo {
+      width: 30%;
+      text-align: center;
+      border: 1px solid #000;
+      vertical-align: top;
+      padding: 6px;
+    }
+
+    .photo-box {
+      border: 1px solid black;
+      height: 160px;
+      width: 140px;
+      text-align: center;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 8px auto 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .participant-photo-img {
+      max-width: 100%;
+      max-height: 100%;
+      display: none;
+      transform-origin: center center;
+    }
+
+    .photo-prompt {
+      line-height: 1.2;
+    }
+
+    .photo-controls {
+      text-align: left;
+      margin: 6px auto 10px;
+      width: 140px;
+      font-size: 10pt;
+    }
+
+    .photo-controls input[type="file"] {
+      width: 100%;
+      font-size: 9pt;
+      border: none;
+      padding: 0;
+      margin-bottom: 4px;
+    }
+
+    .photo-controls input[type="range"] {
+      width: 100%;
+    }
+
+    .photo-controls button {
+      margin: 6px 0 0;
+      padding: 4px 8px;
+      font-size: 9pt;
+      border: 1px solid #000;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    td {
+      vertical-align: top;
+    }
+
+    p {
+      margin: 4px 0;
+    }
+
+    h3, hr {
+      margin-top: 12px;
+    }
+
+    .checkbox-line {
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    input {
+      border: none;
+      border-bottom: 1px solid black;
+      background: transparent;
+      font-family: inherit;
+      font-size: 12pt;
+      padding: 2px 4px;
+    }
+
+    .line input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 0;
+    }
+
+    .inline-choice input {
+      width: auto;
+      margin-right: 4px;
+    }
+
+    .state-postcode {
+      display: flex;
+      gap: 18px;
+    }
+
+    .state-postcode .line {
+      min-width: 100px;
+    }
+
+    .period-row {
+      margin-bottom: 8px;
+    }
+
+    .period-row span {
+      display: inline-block;
+      margin-right: 50px;
+    }
+
+    .venue-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 28px;
+      row-gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    input:focus {
+      outline: none;
+    }
+
+    .signature-block {
+      margin-top: 20px;
+    }
+
+    .page-end p:last-child {
+      margin-top: 10px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #000;
+      margin: 12px 0;
+    }
+
+    @media print {
+      body {
+        margin: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      #instructions-panel {
+        display: none !important;
+      }
+
+      button {
+        display: none !important;
+      }
+
+      input {
+        border: none;
+      }
+
+      .line {
+        border-bottom: 1px dotted #000;
+      }
+
+      .form-row label {
+        width: 45mm;
+      }
+
+      .nsw-left .form-row label {
+        width: 38mm;
+      }
+
+      .support-row label {
+        width: 38mm;
+      }
+
+      .venue-row label {
+        width: 40mm;
+      }
+
+      .controls { display: none; }
+      .page {
+        width: 210mm;
+        min-height: 297mm;
+        padding: 15mm;
+        border: none;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside id="instructions-panel">
+    <h3>Instructions</h3>
+    <ol>
+      <li>Complete page 1 and page 2 on the first form. These details will replicate to the other 9 forms.</li>
+      <li>Ensure you fill out all fields that apply.</li>
+      <li>Enter a 4-digit postcode and click Generate Forms.</li>
+      <li>Add participant photo in the photo box controls via the upload button.</li>
+      <li>Review venue pages, then use Print / Save as PDF.</li>
+      <li>CHECK ALL PREMISE NAME AND ADDRESSES ARE CORRECT.</li>
+      <li>Take the printed form to the venue and ask for the licensee to sign.</li>
+      <li>NOTE: If you take this to a chain of bottle shops or pubs you may be excluded from all the venues under the licensee/group.</li>
+    </ol>
+  </aside>
+  <div id="self-exclusion-tool">
+    <div class="controls">
+      <div class="controls-note">
+        <div class="copy-count-row">
+          <label for="copy-count-select">How many venues would you like the form for:</label>
+          <select id="copy-count-select" aria-label="Number of venues">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10" selected>10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+          </select>
+        </div>
+        &lt;&lt;&lt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Read the instructions first!!
+      </div>
+      <div class="controls-actions">
+        <button id="generate-btn" type="button">Generate Forms</button>
+        <button id="print-btn" type="button">Print / Save as PDF</button>
+      </div>
+    </div>
+    <div id="status" style="font-size:10pt; margin-bottom:8px;"></div>
+    <div id="output"></div>
+  </div>
+
+  <script>
+    const data = {
+      participant: {
+        title: "",
+        first_name: "",
+        middle_name: "",
+        family_name: "",
+        dob: "",
+        address: "",
+        state: "",
+        postcode: "",
+        phone: "",
+        email: ""
+      },
+      exclusion_period: "12 months",
+      venues: [
+        { name: "", address: "" },
+        { name: "", address: "" },
+        { name: "", address: "" },
+        { name: "", address: "" },
+        { name: "", address: "" },
+        { name: "", address: "" }
+      ]
+    };
+
+    const output = document.getElementById("output");
+    const statusEl = document.getElementById("status");
+    const MASTER_FIELDS_STORAGE_KEY = "booze_master_fields_v1";
+    const MAX_VENUES = 20;
+    const photoState = {
+      src: "",
+      scale: 1
+    };
+    let venueLookupSeq = 0;
+    const masterFieldState = {
+      p_title: data.participant.title || "",
+      p_gender: "",
+      p_first_name: data.participant.first_name || "",
+      p_middle_name: data.participant.middle_name || "",
+      p_family_name: data.participant.family_name || "",
+      p_dob: data.participant.dob || "",
+      p_other_name: "",
+      p_address: data.participant.address || "",
+      p_state: data.participant.state || "",
+      p_postcode: data.participant.postcode || "",
+      p_phone_home: data.participant.phone || "",
+      p_phone_day: data.participant.phone || "",
+      p_phone_mobile: data.participant.phone || "",
+      p_email: data.participant.email || "",
+      sp_title: "",
+      sp_first: "",
+      sp_family: "",
+      sp_address: "",
+      sp_phone: "",
+      sp_email: ""
+    };
+
+    function escapeAttr(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function snapshotMasterFields() {
+      document.querySelectorAll("[id^='p_'], [id^='sp_']").forEach((input) => {
+        masterFieldState[input.id] = input.value;
+      });
+      saveMasterFields();
+    }
+
+    function saveMasterFields() {
+      try {
+        localStorage.setItem(MASTER_FIELDS_STORAGE_KEY, JSON.stringify(masterFieldState));
+      } catch (err) {
+        // Ignore storage errors (private mode/quota/security settings).
+      }
+    }
+
+    function loadMasterFields() {
+      try {
+        const raw = localStorage.getItem(MASTER_FIELDS_STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return;
+        Object.keys(masterFieldState).forEach((key) => {
+          if (Object.prototype.hasOwnProperty.call(parsed, key)) {
+            masterFieldState[key] = String(parsed[key] || "");
+          }
+        });
+      } catch (err) {
+        // Ignore invalid persisted data.
+      }
+    }
+
+    function getPremisesName(venue) {
+      return venue.verified_name ? venue.verified_name : venue.name;
+    }
+
+    function getVenueLabel(venue) {
+      return venue.verified_name ? "Verified (manual)" : "Unverified (OSM)";
+    }
+
+    function filterVenues(venues) {
+      const excludedTerms = ["bar", "brewery", "taproom", "cafe"];
+
+      return venues.filter((venue) => {
+        if (venue && (venue.type === "pub" || venue.type === "bottle_shop")) {
+          return true;
+        }
+        const lower = String((venue && venue.name) || "").toLowerCase();
+        const hasExcludedTerm = excludedTerms.some((term) => lower.includes(term));
+        if (hasExcludedTerm) {
+          return false;
+        }
+
+        const isPub = lower.includes("hotel");
+        const isBottleShop = lower.includes("bottle shop") || lower.includes("bottleshop") || lower.includes("bottle") || lower.includes("liquor");
+        return isPub || isBottleShop;
+      });
+    }
+
+    function normalizeVenue(venue) {
+      return {
+        name: String((venue && venue.name) || ""),
+        address: String((venue && venue.address) || ""),
+        type: venue && venue.type ? String(venue.type) : "",
+        verified_name: venue && venue.verified_name ? String(venue.verified_name) : undefined
+      };
+    }
+
+    function getRequestedCopyCount() {
+      const select = document.getElementById("copy-count-select");
+      const value = select ? Number(select.value) : 10;
+      if (!Number.isFinite(value)) return 10;
+      return Math.min(MAX_VENUES, Math.max(1, Math.floor(value)));
+    }
+
+    function buildVenuePages(requestedCount) {
+      const limit = Number.isFinite(requestedCount) ? requestedCount : getRequestedCopyCount();
+      const source = Array.isArray(data.venues) ? data.venues : [];
+      const normalized = source.map(normalizeVenue);
+      const filtered = filterVenues(normalized);
+      let venuesToRender = filtered.length ? filtered : normalized;
+      if (!venuesToRender.length) venuesToRender = [{ name: "", address: "" }];
+      while (venuesToRender.length < limit) {
+        venuesToRender.push({ name: "", address: "" });
+      }
+      return venuesToRender.slice(0, limit);
+    }
+
+    function renderParticipantField(isMaster, id, value, style) {
+      const resolvedValue = Object.prototype.hasOwnProperty.call(masterFieldState, id)
+        ? masterFieldState[id]
+        : value;
+      if (isMaster) {
+        return "<input id='" + id + "' type='text' value=\"" + escapeAttr(resolvedValue) + "\"" + (style ? " style='" + style + "'" : "") + " />";
+      }
+      return "<span data-field='" + id + "'></span>";
+    }
+
+    function syncFields() {
+      const fields = document.querySelectorAll("[id^='p_'], [id^='sp_']");
+
+      fields.forEach(input => {
+        input.addEventListener("input", () => {
+          const key = input.id;
+          masterFieldState[key] = input.value;
+          saveMasterFields();
+
+          document.querySelectorAll("[data-field='" + key + "']")
+            .forEach(el => {
+              el.textContent = input.value;
+            });
+        });
+      });
+    }
+
+    function applyPhotoToAllForms() {
+      const imgs = document.querySelectorAll(".participant-photo-img");
+      const prompts = document.querySelectorAll(".photo-prompt");
+      const hasPhoto = !!photoState.src;
+
+      imgs.forEach((img) => {
+        if (hasPhoto) {
+          img.src = photoState.src;
+          img.style.display = "block";
+          img.style.transform = "scale(" + photoState.scale + ")";
+        } else {
+          img.removeAttribute("src");
+          img.style.display = "none";
+        }
+      });
+
+      prompts.forEach((prompt) => {
+        prompt.style.display = hasPhoto ? "none" : "block";
+      });
+    }
+
+    function bindPhotoControls() {
+      const upload = document.getElementById("participant-photo-upload");
+      const resize = document.getElementById("participant-photo-scale");
+      const removeBtn = document.getElementById("participant-photo-remove");
+
+      if (upload) {
+        upload.addEventListener("change", (event) => {
+          const file = event.target.files && event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            photoState.src = String(e.target.result || "");
+            applyPhotoToAllForms();
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (resize) {
+        resize.value = String(photoState.scale);
+        resize.addEventListener("input", (event) => {
+          const next = Number(event.target.value);
+          photoState.scale = Number.isFinite(next) ? next : 1;
+          applyPhotoToAllForms();
+        });
+      }
+
+      if (removeBtn) {
+        removeBtn.addEventListener("click", () => {
+          photoState.src = "";
+          photoState.scale = 1;
+          if (upload) upload.value = "";
+          if (resize) resize.value = "1";
+          applyPhotoToAllForms();
+        });
+      }
+    }
+
+    function bindPeriodControls() {
+      const masterOptions = document.querySelectorAll("input[name='period_master']");
+      const cloneOptions = document.querySelectorAll("input[data-period-clone='true']");
+
+      const applyPeriod = (value) => {
+        data.exclusion_period = value || "";
+        cloneOptions.forEach((clone) => {
+          clone.checked = clone.value === data.exclusion_period;
+        });
+      };
+
+      masterOptions.forEach((option) => {
+        option.addEventListener("change", () => {
+          if (!option.checked) return;
+          applyPeriod(option.value);
+        });
+      });
+
+      const selected = Array.from(masterOptions).find((option) => option.checked);
+      applyPeriod(selected ? selected.value : data.exclusion_period);
+    }
+
+    function sanitizePostcode(value) {
+      return String(value || "").replace(/[^\d]/g, "").slice(0, 4);
+    }
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const toRad = (deg) => deg * Math.PI / 180;
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    async function fetchWithTimeout(url, options, timeoutMs) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+        return response;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function fetchPostcodeCenter(postcode) {
+      const urls = [
+        "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=au&postalcode=" + encodeURIComponent(postcode) + "&limit=1",
+        "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=au&q=" + encodeURIComponent(postcode + ", NSW, Australia") + "&limit=1"
+      ];
+
+      for (let i = 0; i < urls.length; i += 1) {
+        let res;
+        try {
+          res = await fetchWithTimeout(urls[i], { headers: { "Accept": "application/json" } }, 12000);
+        } catch (err) {
+          continue;
+        }
+        if (!res.ok) continue;
+        const arr = await res.json();
+        if (!Array.isArray(arr) || !arr.length) continue;
+        const first = arr[0];
+        const lat = Number(first.lat);
+        const lon = Number(first.lon);
+        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+          return { lat, lon };
+        }
+      }
+
+      return null;
+    }
+
+    function toVenueFromElement(el, center) {
+      const tags = el && el.tags ? el.tags : {};
+      const name = String(tags.name || tags.brand || "").trim();
+      if (!name) return null;
+      const lowerName = name.toLowerCase();
+      const looksLikeHotel = lowerName.includes(" hotel");
+      const looksLikeBottleShopByName = lowerName.includes("cellar") || lowerName.includes("bottle") || lowerName.includes("liquor");
+      const amenity = String(tags.amenity || "");
+      const shop = String(tags.shop || "");
+      const type = amenity === "pub"
+        ? "pub"
+        : ((amenity === "bar" && looksLikeHotel) || shop === "alcohol" || shop === "wine" || shop === "beverages" || looksLikeBottleShopByName ? "bottle_shop" : "other");
+      if (type !== "pub" && type !== "bottle_shop") return null;
+      const lat = Number(el.lat || (el.center && el.center.lat));
+      const lon = Number(el.lon || (el.center && el.center.lon));
+      const street = [tags["addr:housenumber"], tags["addr:street"]].filter(Boolean).join(" ").trim();
+      const locality = tags["addr:suburb"] || tags["addr:city"] || tags["addr:town"] || tags["addr:village"] || tags["addr:hamlet"] || "";
+      const state = tags["addr:state"] || "";
+      const postcode = tags["addr:postcode"] || "";
+      const extras = tags["addr:full"] || tags["contact:street"] || tags["contact:suburb"] || "";
+      const addressParts = [street, locality, state, postcode, extras].filter(Boolean);
+      const address = addressParts.join(", ").trim();
+      const distanceKm = (Number.isFinite(lat) && Number.isFinite(lon))
+        ? haversineKm(center.lat, center.lon, lat, lon)
+        : 9999;
+      return { name, address, type, distanceKm, lat, lon };
+    }
+
+    function isSparseAddress(address) {
+      const text = String(address || "").trim();
+      if (!text) return true;
+      if (text.length < 10) return true;
+      const commaCount = (text.match(/,/g) || []).length;
+      if (commaCount < 1) return true;
+      const hasPostcode = /\b\d{4}\b/.test(text);
+      const hasState = /\b(NSW|VIC|QLD|SA|WA|TAS|ACT|NT)\b/i.test(text);
+      if (hasPostcode && !hasState) return true;
+      return false;
+    }
+
+    async function reverseGeocodeAddress(lat, lon) {
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return "";
+      const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&lat=" +
+        encodeURIComponent(String(lat)) + "&lon=" + encodeURIComponent(String(lon));
+      try {
+        const res = await fetchWithTimeout(url, { headers: { "Accept": "application/json" } }, 7000);
+        if (!res.ok) return "";
+        const json = await res.json();
+        const addr = json && json.address ? json.address : {};
+        const street = [addr.house_number, addr.road].filter(Boolean).join(" ").trim();
+        const locality = addr.suburb || addr.city_district || addr.town || addr.city || addr.village || addr.hamlet || "";
+        const state = addr.state || "";
+        const postcode = addr.postcode || "";
+        return [street, locality, state, postcode].filter(Boolean).join(", ");
+      } catch (err) {
+        return "";
+      }
+    }
+
+    async function enrichSparseVenueAddresses(venues) {
+      const maxLookups = 10;
+      let lookups = 0;
+      for (let i = 0; i < venues.length; i += 1) {
+        const venue = venues[i];
+        if (!isSparseAddress(venue.address)) continue;
+        if (lookups >= maxLookups) break;
+        const resolved = await reverseGeocodeAddress(venue.lat, venue.lon);
+        if (resolved) {
+          venue.address = resolved;
+        }
+        lookups += 1;
+      }
+      return venues;
+    }
+
+    async function fetchNearbyVenuesByPostcode(postcode) {
+      const center = await fetchPostcodeCenter(postcode);
+      if (!center) return [];
+
+      const endpoints = [
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter"
+      ];
+      const radii = [7000, 12000, 18000, 25000];
+      let elements = [];
+
+      for (let r = 0; r < radii.length; r += 1) {
+        const radius = radii[r];
+        const query = [
+          "[out:json][timeout:25];",
+          "(",
+          "  node(around:" + radius + "," + center.lat + "," + center.lon + ")[amenity=pub];",
+          "  way(around:" + radius + "," + center.lat + "," + center.lon + ")[amenity=pub];",
+          "  relation(around:" + radius + "," + center.lat + "," + center.lon + ")[amenity=pub];",
+          "  node(around:" + radius + "," + center.lat + "," + center.lon + ")[amenity=bar];",
+          "  way(around:" + radius + "," + center.lat + "," + center.lon + ")[amenity=bar];",
+          "  relation(around:" + radius + "," + center.lat + "," + center.lon + ")[amenity=bar];",
+          "  node(around:" + radius + "," + center.lat + "," + center.lon + ")[shop=alcohol];",
+          "  way(around:" + radius + "," + center.lat + "," + center.lon + ")[shop=alcohol];",
+          "  relation(around:" + radius + "," + center.lat + "," + center.lon + ")[shop=alcohol];",
+          "  node(around:" + radius + "," + center.lat + "," + center.lon + ")[shop=wine];",
+          "  way(around:" + radius + "," + center.lat + "," + center.lon + ")[shop=wine];",
+          "  relation(around:" + radius + "," + center.lat + "," + center.lon + ")[shop=wine];",
+          "  node(around:" + radius + "," + center.lat + "," + center.lon + ")[shop=beverages];",
+          "  way(around:" + radius + "," + center.lat + "," + center.lon + ")[shop=beverages];",
+          "  relation(around:" + radius + "," + center.lat + "," + center.lon + ")[shop=beverages];",
+          ");",
+          "out center tags;"
+        ].join("\n");
+
+        let radiusElements = [];
+        for (let i = 0; i < endpoints.length; i += 1) {
+          try {
+            const overpass = await fetchWithTimeout(endpoints[i], {
+              method: "POST",
+              headers: { "Content-Type": "text/plain" },
+              body: query
+            }, 15000);
+            if (!overpass.ok) continue;
+            const json = await overpass.json();
+            radiusElements = Array.isArray(json.elements) ? json.elements : [];
+            if (radiusElements.length) break;
+          } catch (err) {
+            // Try next endpoint.
+          }
+        }
+
+        if (radiusElements.length) {
+          elements = radiusElements;
+          if (radiusElements.length >= MAX_VENUES) break;
+        }
+      }
+
+      const dedupe = new Set();
+      const venues = [];
+      const manualVenueOverridesByPostcode = {
+        "2044": [{ name: "David's Cellars", address: "Marrickville / Inner West NSW 2044", type: "bottle_shop", distanceKm: 0 }]
+      };
+
+      for (let i = 0; i < elements.length; i += 1) {
+        const venue = toVenueFromElement(elements[i], center);
+        if (!venue) continue;
+        const key = (venue.name + "|" + venue.address).toLowerCase();
+        if (dedupe.has(key)) continue;
+        dedupe.add(key);
+        venues.push(venue);
+      }
+      const overrides = manualVenueOverridesByPostcode[postcode] || [];
+      overrides.forEach((venue) => {
+        const key = (venue.name + "|" + venue.address).toLowerCase();
+        if (!dedupe.has(key)) {
+          dedupe.add(key);
+          venues.push(venue);
+        }
+      });
+      await enrichSparseVenueAddresses(venues);
+      venues.sort((a, b) => (a.distanceKm || 0) - (b.distanceKm || 0));
+      return venues.slice(0, MAX_VENUES).map(({ name, address, type }) => ({ name, address, type }));
+    }
+
+    async function refreshVenuesFromPostcode(rawPostcode) {
+      const postcode = sanitizePostcode(rawPostcode);
+      if (!postcode || postcode.length < 4) return;
+      const seq = ++venueLookupSeq;
+      const button = document.getElementById("generate-btn");
+      const originalText = button ? button.textContent : "";
+      if (statusEl) {
+        statusEl.textContent = "Finding nearby venues for " + postcode + "...";
+      }
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Finding nearby venues...";
+      }
+      try {
+        const venues = await fetchNearbyVenuesByPostcode(postcode);
+        if (seq !== venueLookupSeq) return;
+        if (venues.length) {
+          data.venues = venues;
+          generateForms();
+          if (statusEl) {
+            statusEl.textContent = "Found " + venues.length + " nearby venue(s) for " + postcode + ".";
+          }
+        } else {
+          generateForms();
+          if (statusEl) {
+            statusEl.textContent = "No nearby venues found for " + postcode + ".";
+          }
+        }
+      } catch (err) {
+        console.warn("Venue lookup failed:", err);
+        if (statusEl) {
+          statusEl.textContent = "Venue lookup failed for " + postcode + ".";
+        }
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.textContent = originalText || "Generate Forms";
+        }
+      }
+    }
+
+    function renderFormPage(venue, index) {
+      const p = data.participant;
+      const premisesName = getPremisesName(venue);
+      const venueLabel = getVenueLabel(venue);
+      const isMaster = index === 0;
+      const periodControls = isMaster
+        ? "<span><label><input type='radio' name='period_master' value='6 months' " + (data.exclusion_period === "6 months" ? "checked" : "") + "> 6 months</label></span>" +
+          "<span><label><input type='radio' name='period_master' value='12 months' " + (data.exclusion_period === "12 months" ? "checked" : "") + "> 12 months</label></span>" +
+          "<span><label><input type='radio' name='period_master' value='2 years' " + (data.exclusion_period === "2 years" ? "checked" : "") + "> 2 years</label></span>"
+        : "<span><label><input type='radio' data-period-clone='true' value='6 months' " + (data.exclusion_period === "6 months" ? "checked" : "") + " disabled> 6 months</label></span>" +
+          "<span><label><input type='radio' data-period-clone='true' value='12 months' " + (data.exclusion_period === "12 months" ? "checked" : "") + " disabled> 12 months</label></span>" +
+          "<span><label><input type='radio' data-period-clone='true' value='2 years' " + (data.exclusion_period === "2 years" ? "checked" : "") + " disabled> 2 years</label></span>";
+
+      const container = document.createElement("div");
+      const page = document.createElement("div");
+      page.className = "page";
+      const pageTwo = document.createElement("div");
+      pageTwo.className = "page page-end";
+
+      page.innerHTML =
+        "<h2>SELF-EXCLUSION FROM LICENSED PREMISES AGREEMENT</h2>" +
+        "<div class='subtitle'>Under section 76 of the Liquor Act 2007</div>" +
+        "<p><strong>NOTE:</strong> The person requesting exclusion is referred to as the \"participant\".</p>" +
+
+        "<table class='nsw-table'>" +
+          "<tr>" +
+            "<td class='nsw-left'>" +
+              "<div class='form-row'><label>Title:</label><span class='line'>" + renderParticipantField(isMaster, "p_title", p.title) + "</span></div>" +
+              "<div class='form-row'><label>Gender:</label><span class='line'>" + renderParticipantField(isMaster, "p_gender", "") + "</span></div>" +
+              "<div class='form-row'><label>First name:</label><span class='line'>" + renderParticipantField(isMaster, "p_first_name", p.first_name) + "</span></div>" +
+              "<div class='form-row'><label>Middle name:</label><span class='line'>" + renderParticipantField(isMaster, "p_middle_name", p.middle_name) + "</span></div>" +
+              "<div class='form-row'><label>Family name:</label><span class='line'>" + renderParticipantField(isMaster, "p_family_name", p.family_name) + "</span></div>" +
+              "<div class='form-row'><label>Date of birth:</label><span class='line'>" + renderParticipantField(isMaster, "p_dob", p.dob) + "</span></div>" +
+              "<div class='form-row'><label>Are you known by another name?</label><span class='inline-choice'><label><input type='radio' name='other_name' value='yes'> yes</label> <label><input type='radio' name='other_name' value='no'> no</label></span></div>" +
+              "<div class='form-row'><label>If yes, Name/s:</label><span class='line'>" + renderParticipantField(isMaster, "p_other_name", "") + "</span></div>" +
+              "<div class='form-row'><label>Address:</label><span class='line'>" + renderParticipantField(isMaster, "p_address", p.address) + "</span></div>" +
+              "<div class='form-row'><label></label><span class='line'>&nbsp;</span></div>" +
+              "<div class='form-row'><label>State:</label><span class='state-postcode'><span class='line'>" + renderParticipantField(isMaster, "p_state", p.state, "width:60px;") + "</span><span>Post Code:</span><span class='line'>" + renderParticipantField(isMaster, "p_postcode", p.postcode, "width:80px;") + "</span></span></div>" +
+              "<p>If you have a phone or an email address you can provide these details below. This information is optional.</p>" +
+              "<div class='form-row'><label>Phone (home):</label><span class='line'>" + renderParticipantField(isMaster, "p_phone_home", p.phone) + "</span></div>" +
+              "<div class='form-row'><label>Phone (daytime):</label><span class='line'>" + renderParticipantField(isMaster, "p_phone_day", p.phone) + "</span></div>" +
+              "<div class='form-row'><label>Phone (mobile):</label><span class='line'>" + renderParticipantField(isMaster, "p_phone_mobile", p.phone) + "</span></div>" +
+              "<div class='form-row'><label>Email:</label><span class='line'>" + renderParticipantField(isMaster, "p_email", p.email) + "</span></div>" +
+            "</td>" +
+            "<td class='nsw-photo'>" +
+              "<div class='photo-box'>" +
+                "<img class='participant-photo-img' alt='Participant photo' />" +
+                "<div class='photo-prompt'>Please attach<br>photo of<br>participant here</div>" +
+              "</div>" +
+              (isMaster
+                ? "<div class='photo-controls'>" +
+                    "<input id='participant-photo-upload' type='file' accept='image/*' />" +
+                    "<label for='participant-photo-scale'>Resize photo</label>" +
+                    "<input id='participant-photo-scale' type='range' min='0.6' max='1.8' step='0.01' value='1' />" +
+                    "<button id='participant-photo-remove' type='button'>Remove photo</button>" +
+                  "</div>"
+                : "") +
+              "<p><strong>Photo Guidelines</strong></p>" +
+              "<ol>" +
+                "<li>Photo must be no more that 6 months old.</li>" +
+                "<li>Photo should be at least 45mm high and 35mm wide.</li>" +
+                "<li>Photo should show the head and top of shoulders close up.</li>" +
+                "<li>Photo should show the participant looking directly at the camera.</li>" +
+                "<li>Photo should show both edges of the face clearly.</li>" +
+                "<li>No hair should be covering the eyes.</li>" +
+                "<li>No head coverings should be worn except for religious purposes.</li>" +
+                "<li>If glasses are worn they should not restrict a clear view of the eyes.</li>" +
+              "</ol>" +
+            "</td>" +
+          "</tr>" +
+        "</table>" +
+        "<hr>" +
+        "<p><strong>Support Person (optional)</strong></p>" +
+        "<p>You may provide a support person (optional)</p>" +
+        "<div class='form-row support-row'><label>Title:</label><span class='line'>" + renderParticipantField(isMaster, "sp_title", "") + "</span></div>" +
+        "<div class='form-row support-row'><label>First name(s):</label><span class='line'>" + renderParticipantField(isMaster, "sp_first", "") + "</span></div>" +
+        "<div class='form-row support-row'><label>Family name(s):</label><span class='line'>" + renderParticipantField(isMaster, "sp_family", "") + "</span></div>" +
+        "<div class='form-row support-row'><label>Address:</label><span class='line'>" + renderParticipantField(isMaster, "sp_address", "") + "</span></div>" +
+        "<div class='form-row support-row'><label>Phone:</label><span class='line'>" + renderParticipantField(isMaster, "sp_phone", "") + "</span></div>" +
+        "<div class='form-row support-row'><label>Email:</label><span class='line'>" + renderParticipantField(isMaster, "sp_email", "") + "</span></div>";
+
+      pageTwo.innerHTML =
+        "<p><strong>The participant wishes to exclude themselves from the following licensed premises for a period of:</strong></p>" +
+        "<p class='period-row'>Please tick : " + periodControls + "</p>" +
+        "<div class='form-row'><label>Other period:</label><span class='line'>&nbsp;</span></div>" +
+        "<div class='venue-grid'>" +
+          "<div class='form-row venue-row'><label>Premises name:</label><span class='line'><input type='text' value='" + premisesName + "' /></span></div>" +
+          "<div class='form-row venue-row'><label>Address:</label><span class='line'><input type='text' value='" + venue.address + "' /></span></div>" +
+          "<div class='form-row venue-row'><label></label><span class='line'>&nbsp;</span></div>" +
+          "<div class='form-row venue-row'><label></label><span class='line'>&nbsp;</span></div>" +
+        "</div>" +
+        "<p class='venue-label'>" + venueLabel + "</p>" +
+        "<h3>Terms of Agreement</h3>" +
+        "<ol>" +
+          "<li>The participant will not attempt to enter the licensed premises detailed above for the period stated.</li>" +
+          "<li>The participant consents to the personal information they have provided, including a photo, being stored for the purpose of assisting identification by the licensed premises detailed above.</li>" +
+          "<li>The participant acknowledges that under this agreement, it is lawful for a responsible person* for the licensed premises to prevent them from entering the licensed premises detailed above.</li>" +
+          "<li>The participant acknowledges that under this agreement, it is lawful for a responsible person* for the licensed premises to remove, or cause them to be removed, from the licensed premises detailed above.</li>" +
+          "<li>The participant understands that this self-exclusion agreement can only be terminated by advising the licensee in writing (a form is available from the NSW Office of Liquor, Gaming and Racing).</li>" +
+        "</ol>" +
+        "<p><em>*Responsible person</em> means the licensee, the manager of the premises, an employee or agent of the licensee or manager or a person acting on behalf of the licensee or manager (including staff and security officers).</p>" +
+        "<p class='signature-block'>I <span class='line' style='display:inline-block; width:46%;'></span> have read, understand, and agree to comply with all the terms of this agreement</p>" +
+        "<p style='text-align:center;'>participant print name</p>" +
+        "<p>Participant to sign: <span class='line' style='display:inline-block; width:50%;'></span> Date: <span class='line' style='display:inline-block; width:22%;'></span></p>" +
+        "<p>I <span class='line' style='display:inline-block; width:46%;'></span> have read, understand, and agree to comply with all the terms of this agreement</p>" +
+        "<p style='text-align:center;'>licensee print name</p>" +
+        "<p>all the terms of this agreement</p>" +
+        "<hr>" +
+        "<p class='footer-note'>This agreement is not valid unless signed by both the participant and the licensee.</p>" +
+        "<p class='footer-note'>The Liquor Act requires compliance by both parties. The participant remains responsible for adhering to the agreement.</p>";
+
+      container.appendChild(page);
+      container.appendChild(pageTwo);
+      return container;
+    }
+
+    function generateForms() {
+      snapshotMasterFields();
+      output.innerHTML = "";
+      const venuesToRender = buildVenuePages();
+
+      venuesToRender.forEach((venue, index) => {
+        output.appendChild(renderFormPage(venue, index));
+      });
+
+      syncFields();
+      bindPeriodControls();
+      bindPhotoControls();
+      applyPhotoToAllForms();
+      document.querySelectorAll("[id^='p_'], [id^='sp_']").forEach(input => {
+        const key = input.id;
+        document.querySelectorAll("[data-field='" + key + "']")
+          .forEach(el => el.textContent = input.value);
+      });
+    }
+
+    function downloadCurrentJSON() {
+      const filteredVenues = buildVenuePages(getRequestedCopyCount());
+      const payload = {
+        participant: data.participant,
+        exclusion_period: data.exclusion_period,
+        venues: filteredVenues
+      };
+
+      const jsonString = JSON.stringify(payload, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "self-exclusion-venues.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("generate-btn").addEventListener("click", function () {
+      const postcodeInput = document.getElementById("p_postcode");
+      if (postcodeInput && sanitizePostcode(postcodeInput.value).length === 4) {
+        void refreshVenuesFromPostcode(postcodeInput.value);
+      } else {
+        generateForms();
+        if (statusEl) {
+          statusEl.textContent = "Complete postcode with 4 digits to auto-find nearby venues.";
+        }
+      }
+    });
+    document.getElementById("copy-count-select").addEventListener("change", function () {
+      generateForms();
+    });
+    document.getElementById("print-btn").addEventListener("click", function () {
+      window.print();
+    });
+
+    generateForms();
+  </script>
+</body>
+</html>

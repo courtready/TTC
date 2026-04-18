@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Campaign Dashboard</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #0b0b12;
+      color: white;
+      padding: 40px;
+    }
+
+    .card {
+      background: #151524;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .big {
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    td {
+      padding: 8px;
+      border-bottom: 1px solid #333;
+    }
+
+    button {
+      padding: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<script>
+const ADMIN_PASSWORD = "Tr33frog@#23";
+
+const entered = prompt("Enter admin password");
+
+if (entered !== ADMIN_PASSWORD) {
+  document.body.innerHTML = "<h1>Access denied</h1>";
+  throw new Error("Unauthorized");
+}
+</script>
+
+<h1>Campaign Dashboard</h1>
+
+<div class="card">
+  <div>Total Members</div>
+  <div id="total" class="big">-</div>
+</div>
+
+<div class="card">
+  <div>Signups Today</div>
+  <div id="today" class="big">-</div>
+</div>
+
+<div class="card">
+  <div>Top Postcode</div>
+  <div id="topPostcode" class="big">-</div>
+</div>
+
+<div class="card">
+  <button onclick="exportCSV()">Export CSV</button>
+  <div id="status" style="margin-bottom:8px;color:#9aa;">Loading…</div>
+  <table id="postcodeTable"></table>
+</div>
+
+<div class="card">
+  <div>Support Map</div>
+  <div id="map" style="height: 400px;"></div>
+</div>
+
+<script>
+/** Same project as taxthe.church join form — used only for Edge Function auth. */
+const SUPABASE_URL = "https://umouqdubdlqaofqukawa.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtb3VxZHViZGxxYW9mcXVrYXdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNDY2NTIsImV4cCI6MjA5MDYyMjY1Mn0.ILgAJ9hKih2slbUUlmN6CUaatGbStSxrqOGHKhkCi4U";
+
+const postcodeMap = {
+  "2000": "Sydney",
+  "2010": "Sydney",
+  "2020": "Heffron",
+  "2044": "Newtown",
+  "2150": "Parramatta",
+  "2170": "Liverpool"
+};
+
+const electorateCoords = {
+  "Sydney": [-33.87, 151.21],
+  "Heffron": [-33.93, 151.23],
+  "Newtown": [-33.90, 151.18],
+  "Parramatta": [-33.82, 151.00],
+  "Liverpool": [-33.92, 150.92]
+};
+
+let map = null;
+if (window.L) {
+  map = L.map('map').setView([-33.8688, 151.2093], 10);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18
+  }).addTo(map);
+} else {
+  document.getElementById("map").innerText = "Map failed to load.";
+}
+
+window.mapMarkers = [];
+
+async function loadDashboard() {
+  const status = document.getElementById("status");
+  const table = document.getElementById("postcodeTable");
+  table.innerHTML = "<tr><td><strong>Postcode</strong></td><td><strong>Count</strong></td></tr>";
+  try {
+    status.innerText = "Refreshing...";
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/admin-dashboard`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+          apikey: SUPABASE_ANON_KEY
+        }
+      }
+    );
+    const payload = await response.json().catch(() => ({}));
+    const ok = response.ok && (payload.ok === true || payload.success === true);
+    if (!ok) {
+      throw new Error(payload.error || "HTTP " + response.status);
+    }
+
+    const counts = payload.postcodeCounts || {};
+    document.getElementById("total").innerText = payload.total ?? 0;
+    document.getElementById("today").innerText = payload.today ?? 0;
+
+    if ((payload.total ?? 0) === 0) {
+      status.innerText =
+        "No members yet (empty list). New Tax the Church signups will appear here.";
+    }
+
+    const sorted = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1]);
+
+    sorted.forEach(([postcode, count]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${postcode}</td><td>${count}</td>`;
+      table.appendChild(tr);
+    });
+
+    if (sorted.length === 0) {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td colspan="2" style="color:#9aa;">No postcode rows yet.</td>';
+      table.appendChild(tr);
+    }
+
+    if (sorted.length > 0) {
+      document.getElementById("topPostcode").innerText =
+        sorted[0][0] + " (" + sorted[0][1] + ")";
+    } else {
+      document.getElementById("topPostcode").innerText = "-";
+    }
+
+    const electorateCounts = {};
+
+    Object.entries(counts).forEach(([postcode, count]) => {
+      const electorate = postcodeMap[postcode];
+      if (!electorate) return;
+
+      electorateCounts[electorate] = (electorateCounts[electorate] || 0) + count;
+    });
+
+    if (map) {
+      if (window.mapMarkers.length) {
+        window.mapMarkers.forEach(m => map.removeLayer(m));
+      }
+      window.mapMarkers = [];
+
+      Object.entries(electorateCounts).forEach(([electorate, count]) => {
+        const coords = electorateCoords[electorate];
+        if (!coords) return;
+
+        const marker = L.circleMarker(coords, {
+          radius: 5 + count,
+          color: "#00ffcc"
+        }).addTo(map);
+
+        marker.bindPopup(`${electorate}: ${count} supporters`);
+
+        window.mapMarkers.push(marker);
+      });
+    }
+
+    console.log("Postcode data:", counts);
+    if ((payload.total ?? 0) !== 0) {
+      status.innerText = "Last refreshed: " + new Date().toLocaleTimeString();
+    }
+  } catch (err) {
+    console.error("Dashboard load failed:", err);
+    status.innerText = "Load failed: " + (err.message || "Unknown error");
+    document.getElementById("total").innerText = "0";
+    document.getElementById("today").innerText = "0";
+    document.getElementById("topPostcode").innerText = "-";
+  }
+}
+
+async function exportCSV() {
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/admin-dashboard`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        apikey: SUPABASE_ANON_KEY
+      }
+    }
+  );
+  const payload = await response.json().catch(() => ({}));
+  const ok = response.ok && (payload.ok === true || payload.success === true);
+  if (!ok) {
+    alert("Export failed: " + (payload.error || "HTTP " + response.status));
+    return;
+  }
+  const data = Array.isArray(payload.members) ? payload.members : [];
+
+  let csv = "first_name,email,postcode,created_at\n";
+
+  data.forEach(row => {
+    csv += `${row.first_name},${row.email},${row.postcode || ""},${row.created_at}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "members.csv";
+  a.click();
+}
+
+loadDashboard();
+
+setInterval(() => {
+  loadDashboard();
+}, 30000);
+</script>
+
+</body>
+</html>

@@ -1,3 +1,4 @@
 node_modules/
+supabase/.temp/
 # Source CSV (~9MB); re-download from matthewproctor/australianpostcodes if regenerating
 australian_postcodes.csv

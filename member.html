@@ -188,14 +188,12 @@ document.addEventListener("DOMContentLoaded", () => {
     "sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV"
   );
 
-  const form = document.querySelector("form");
+  const form = document.getElementById("form");
 
   if (!form) {
     console.error("Form not found");
     return;
   }
-
-  console.log("Form loaded");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -278,16 +276,24 @@ document.addEventListener("DOMContentLoaded", () => {
         successMsg.style.display = "block";
       }
 
-      fetch("https://umouqdubdlqaofqukawa.functions.supabase.co/signup-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, first_name: name })
-      }).catch((emailErr) => {
-        console.warn("signup-email hook failed:", emailErr);
-      });
+      try {
+        await fetch("https://umouqdubdlqaofqukawa.supabase.co/functions/v1/send-welcome", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer sb_publishable_KrtpOdAseDSNshcJXTW6OQ_krHEXClV"
+          },
+          body: JSON.stringify({ email: email, name: name, brand: "tax" })
+        });
+      } catch (emailErr) {
+        console.error("Email failed", emailErr);
+      }
     }
   });
 });
   </script>
 </body>
 </html>
+
+
+

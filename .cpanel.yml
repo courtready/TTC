@@ -1,5 +1,4 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/matt247/public_html/
-    - /bin/cp -R * $DEPLOYPATH
+    - /bin/cp -R * /home/taxthech/public_html/

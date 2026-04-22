@@ -67,7 +67,7 @@
     <div class="section-label">Local Impact</div>
     <h2>What This Means For Your <em>Region</em></h2>
     <div class="impact-box">
-      <input id="locationInput" class="impact-input" type="text" inputmode="text" autocomplete="postal-code"
+      <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" id="locationInput" class="impact-input" type="text" inputmode="text" autocomplete="postal-code"
         placeholder="Enter postcode or suburb (e.g. 2044 or Newtown)">
       <select id="regionSelect" class="impact-input">
         <option>Western Sydney</option>
@@ -89,15 +89,15 @@
           <p id="fundingExplanation" class="funding-explanation" aria-live="polite" hidden></p>
           <div class="funding-split-row">
             <label><strong>Budget to nurses:</strong> <span id="splitValue">50</span>% <span class="funding-split-rest">(rest to teachers)</span></label>
-            <input type="range" id="splitSlider" min="0" max="100" value="50" oninput="updateSplit(this.value)">
+            <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" type="range" id="splitSlider" min="0" max="100" value="50" oninput="updateSplit(this.value)">
           </div>
           <div class="funding-pay-row">
             <label><strong>Nurses pay rise:</strong> <span id="payValueNurses">0</span>%</label>
-            <input type="range" id="paySliderNurses" min="0" max="12" value="0" oninput="updatePayNurses(this.value)">
+            <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" type="range" id="paySliderNurses" min="0" max="12" value="0" oninput="updatePayNurses(this.value)">
           </div>
           <div class="funding-pay-row">
             <label><strong>Teachers pay rise:</strong> <span id="payValueTeachers">0</span>%</label>
-            <input type="range" id="paySliderTeachers" min="0" max="12" value="0" oninput="updatePayTeachers(this.value)">
+            <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" type="range" id="paySliderTeachers" min="0" max="12" value="0" oninput="updatePayTeachers(this.value)">
           </div>
         </div>
         <div id="region-output" class="impact-result"></div>
@@ -308,7 +308,11 @@
 
   <footer class="site-footer">
     <div class="footer-content">
-      <p class="quote"><section id="supporter-section" style="padding:60px 20px; background:#f8f8f8;">
+      <p class="quote"><section id="supporter-section" style="
+  padding:80px 20px;
+  background: radial-gradient(circle at top, #2d1f4d, #1a132b);
+  color:white;
+">
   <div style="max-width:600px;margin:auto;">
     <h2>Register as a Supporter</h2>
     <p>
@@ -317,28 +321,40 @@
     </p>
 
     <form id="supporter-form">
-      <input name="name" placeholder="Full Name" required /><br>
-      <input name="email" placeholder="Email" required /><br>
-      <input name="mobile" placeholder="Mobile" /><br>
+      <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" name="name" placeholder="Full Name" required /><br>
+      <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" name="email" placeholder="Email" required /><br>
+      <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" name="mobile" placeholder="Mobile" /><br>
 
-      <input name="address" placeholder="Street Address" required /><br>
-      <input name="suburb" placeholder="Suburb" required /><br>
-      <input name="state" placeholder="State" required /><br>
-      <input name="postcode" placeholder="Postcode" required /><br>
+      <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" name="address" placeholder="Street Address" required /><br>
+      <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" name="suburb" placeholder="Suburb" required /><br>
+      <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" name="state" placeholder="State" required /><br>
+      <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" name="postcode" placeholder="Postcode" required /><br>
 
-      <input type="date" name="dob" required /><br>
+      <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" type="date" name="dob" required /><br>
 
       <label>
-        <input type="checkbox" name="enrolled" required />
+        <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" type="checkbox" name="enrolled" required />
         I confirm I am enrolled to vote in Australia
       </label><br>
 
       <label>
-        <input type="checkbox" name="declaration" required />
+        <input style="width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none;" type="checkbox" name="declaration" required />
         I support the registration of this political party
       </label><br><br>
 
-      <button type="submit">Register Support</button>
+      <button type="submit" style="
+  width:100%;
+  margin-top:15px;
+  padding:14px;
+  background:#7c5cff;
+  border:none;
+  border-radius:8px;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+">
+  Register Support
+</button>
     </form>
   </div>
 </section>
@@ -375,6 +391,7 @@ Fair policy is consistent policy: clear rules, transparent assumptions, and meas
 </body>
 
 </html>
+
 
 
 

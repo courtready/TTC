@@ -278,10 +278,20 @@
   <!-- JOIN + DONATE -->
   <div class="join-wrap" id="join">
     <div class="section-label" style="color:rgba(255,255,255,0.5)">Get Involved</div>
-    <h2>Join the Movement.</h2>
+    <h2>Join the Campaign.</h2>
     <p>Help us put fair taxation on the NSW agenda before the 2027 election.</p>
-    <a href="member.html" class="btn-primary" style="display:inline-block;margin-top:1.5rem;">Join the Movement</a>
+    <a href="member.html" class="btn-primary" style="display:inline-block;margin-top:1.5rem;">Get Updates</a>
     <p class="join-note">No spam. Only campaign updates. Unsubscribe anytime.</p>
+    <div style="margin-top:20px;">
+      <p style="font-size:14px; opacity:0.8;">
+        Want to formally support party registration?
+      </p>
+
+      <button onclick="document.getElementById('supporter-section').scrollIntoView({behavior:'smooth'})"
+        style="margin-top:10px;padding:10px 16px;border:1px solid #aaa;background:transparent;color:white;border-radius:6px;">
+        Register as a Supporter
+      </button>
+    </div>
     <div class="join-donate">
       <div class="section-label" style="color:rgba(255,255,255,0.5)">Support the Campaign</div>
       <h2>Back the <em>Fight.</em></h2>
@@ -309,7 +319,7 @@
 </body>
 
 </html>
-<section style="padding:60px 20px; background:#f8f8f8;">
+<section id="supporter-section" style="padding:60px 20px; background:#f8f8f8;">
   <div style="max-width:600px;margin:auto;">
     <h2>Register as a Supporter</h2>
     <p>

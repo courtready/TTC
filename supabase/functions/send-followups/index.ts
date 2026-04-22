@@ -29,37 +29,37 @@ serve(async () => {
       to: user.email,
       subject: "Why this matters",
 
-      text: `Hi ${user.name},
+      text: `Hi ${user.name || "there"},
 
-You signed up recently because something about this didn’t sit right.
+You signed up recently because something about this didn't sit right.
 
 Everyday Australians pay their share.
-Some institutions don’t.
+Some institutions don't.
 
-That gap is growing — and it’s being carried by workers, families, and small businesses.
+That gap is growing - and it's being carried by workers, families, and small businesses.
 
 If you agree, help this grow:
 https://taxthe.church
 
-— Tax the Church`,
+- Tax the Church`,
 
       html: `
       <div style="font-family: Arial; max-width: 600px; margin: auto;">
-        <p>Hi ${user.name},</p>
+        <p>Hi ${user.name || "there"},</p>
 
-        <p>You signed up recently because something about this didn’t sit right.</p>
+        <p>You signed up recently because something about this didn't sit right.</p>
 
-        <p><strong>Everyday Australians pay their share.<br>Some institutions don’t.</strong></p>
+        <p><strong>Everyday Australians pay their share.<br>Some institutions don't.</strong></p>
 
         <p>
-          That gap is growing — and it’s being carried by workers, families, and small businesses.
+          That gap is growing - and it's being carried by workers, families, and small businesses.
         </p>
 
         <p>
           <a href="https://taxthe.church">Help this grow</a>
         </p>
 
-        <p>— Tax the Church</p>
+        <p>- Tax the Church</p>
       </div>
       `
     });

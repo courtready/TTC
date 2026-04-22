@@ -10,7 +10,7 @@ create policy "Service role insert"
 on public.supporters
 for insert
 to service_role
-using (true);
+with check (true);
 
 -- Block everything else
 create policy "No public select"

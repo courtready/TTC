@@ -309,3 +309,54 @@
 </body>
 
 </html>
+<section style="padding:60px 20px; background:#f8f8f8;">
+  <div style="max-width:600px;margin:auto;">
+    <h2>Register as a Supporter</h2>
+    <p>
+      If you support this becoming a registered political party, you can formally
+      record your support below.
+    </p>
+
+    <form id="supporter-form">
+      <input name="name" placeholder="Full Name" required /><br>
+      <input name="email" placeholder="Email" required /><br>
+      <input name="mobile" placeholder="Mobile" /><br>
+
+      <input name="address" placeholder="Street Address" required /><br>
+      <input name="suburb" placeholder="Suburb" required /><br>
+      <input name="state" placeholder="State" required /><br>
+      <input name="postcode" placeholder="Postcode" required /><br>
+
+      <input type="date" name="dob" required /><br>
+
+      <label>
+        <input type="checkbox" name="enrolled" required />
+        I confirm I am enrolled to vote in Australia
+      </label><br>
+
+      <label>
+        <input type="checkbox" name="declaration" required />
+        I support the registration of this political party
+      </label><br><br>
+
+      <button type="submit">Register Support</button>
+    </form>
+  </div>
+</section>
+
+<script>
+document.getElementById('supporter-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const data = Object.fromEntries(new FormData(e.target));
+
+  await fetch("https://umouqdubdlqaofqukawa.supabase.co/functions/v1/register-supporter", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  alert("You are now recorded as a supporter.");
+});
+</script>
+

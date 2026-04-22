@@ -1,0 +1,42 @@
+<form id="supporter-form" style="max-width:600px;margin:auto;">
+  <h2>Become a Registered Supporter</h2>
+
+  <input placeholder="Full Name" name="name" required /><br>
+  <input placeholder="Email" name="email" required /><br>
+  <input placeholder="Mobile" name="mobile" /><br>
+
+  <input placeholder="Street Address" name="address" required /><br>
+  <input placeholder="Suburb" name="suburb" required /><br>
+  <input placeholder="State" name="state" required /><br>
+  <input placeholder="Postcode" name="postcode" required /><br>
+
+  <input type="date" name="dob" required /><br>
+
+  <label>
+    <input type="checkbox" name="enrolled" required />
+    I confirm I am enrolled to vote in Australia
+  </label><br>
+
+  <label>
+    <input type="checkbox" name="declaration" required />
+    I support the registration of this political party
+  </label><br><br>
+
+  <button type="submit">Register Support</button>
+</form>
+
+<script>
+document.getElementById('supporter-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const data = Object.fromEntries(new FormData(e.target));
+
+  await fetch('/api/supporter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+
+  alert('Thanks — you’re now a registered supporter.');
+});
+</script>

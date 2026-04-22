@@ -1,6 +1,5 @@
 ---
 deployment:
   tasks:
-    - export TARGET_DIR="/home/taxthech/public_html"
-    - export SRC_DIR="$DEPLOYMENT_SOURCE"
-    - if [ "$SRC_DIR" = "$TARGET_DIR" ]; then echo "Source equals target; skipping rsync."; else rsync -av --delete --exclude=".git/" --exclude=".github/" --exclude="node_modules/" "$SRC_DIR/" "$TARGET_DIR/"; fi
+    - export DEPLOYPATH=/home/USERNAME/public_html/
+    - /bin/cp -R * $DEPLOYPATH

@@ -348,7 +348,12 @@
 document.getElementById('supporter-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const data = Object.fromEntries(new FormData(e.target));
+  const form = new FormData(e.target);
+const data = Object.fromEntries(form.entries());
+
+// Normalize checkbox values
+data.enrolled = form.get("enrolled") === "on";
+data.declaration = form.get("declaration") === "on";
 
   await fetch("https://umouqdubdlqaofqukawa.supabase.co/functions/v1/register-supporter", {
     method: "POST",
@@ -359,4 +364,5 @@ document.getElementById('supporter-form')?.addEventListener('submit', async (e) 
   alert("You are now recorded as a supporter.");
 });
 </script>
+
 

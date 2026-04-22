@@ -25,6 +25,7 @@ alter table public.members
   alter column email set not null;
 
 alter table public.members add column if not exists postcode text;
+alter table public.members add column if not exists followup_sent boolean;
 
 create unique index if not exists members_email_unique_idx
 on public.members (lower(email));

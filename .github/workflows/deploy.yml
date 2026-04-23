@@ -16,8 +16,8 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.CPANEL_HOST }}
-          username: ${{ secrets.CPANEL_USER }}
+          host: taxthe.church
+          username: taxthech
           key: ${{ secrets.CPANEL_SSH_KEY }}
           port: 2683
           script: |

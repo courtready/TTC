@@ -1,4 +1,4 @@
-name: Deploy to cPanel
+name: Deploy via FTP
 
 on:
   push:
@@ -13,13 +13,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Upload via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          host: taxthe.church
-          username: taxthech
-          key: ${{ secrets.CPANEL_SSH_KEY }}
-          port: 2683
-          script: |
-            cd /home/taxthech/public_html
-            git pull origin main
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          server-dir: /public_html/
+          exclude: |
+            **/.git*
+            **/.github*
+            **/.cpanel.yml
+            **/node_modules/**

@@ -1,4 +1,6 @@
 ---
 deployment:
   tasks:
-    - /bin/cp -R * /home/taxthech/public_html/
+    - export DEPLOYPATH=/home/taxthech/public_html
+    - /bin/mkdir -p $DEPLOYPATH
+    - /usr/bin/rsync -av --delete --exclude=".git" --exclude=".cpanel.yml" --exclude=".gitignore" ./ $DEPLOYPATH/
